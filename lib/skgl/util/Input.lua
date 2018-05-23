@@ -1,10 +1,9 @@
 --[[@meta]]
 Input = {
-	__index = Input,
-	__name = "Input"
+  name = "Input"
 }
 
--- Possíveis estados de tecla:
+-- Possíveis estados de tecla.
 Input.state = {
   IDLE     = 0,
   PRESSED  = 1,
@@ -12,7 +11,7 @@ Input.state = {
   RELEASED = 3
 }
 
--- Teclas do console:
+-- Teclas do console.
 Input.button = {
 	SELECT   = Input.state.IDLE,
 	START    = Input.state.IDLE,
@@ -28,7 +27,7 @@ Input.button = {
 	SQUARE   = Input.state.IDLE
 }
 
--- Teclas associadas (correspondem a um botão):
+-- Teclas associadas (correspondem a um botão).
 Input.binding = {
 	select   = "SELECT",
 	start    = "START",
@@ -46,6 +45,7 @@ Input.binding = {
 
 --[[
 - Associa uma tecla.
+-
 - @param {string} name Nome da tecla.
 - @param {string} key Tecla a ser associada (ver Input.button).
 --]]
@@ -54,49 +54,62 @@ function Input.setBinding(name, key)
 end
 
 --[[
-- @return {number} Retorna o estado de uma tecla associada.
-- @param {string} name Nome da tecla.
+- Obtém o estado de uma tecla associada.
+-
+- @param {string} name Nome da tecla (ver Input.binding).
+- @return {number}
 --]]
 function Input.getBinding(name)
 	return Input.button[Input.binding[name]]
 end
 
 --[[
-- @return {boolean} Retorna se uma tecla está livre.
-- @param {string} name Nome da tecla.
+- Informa se uma tecla está ou não está livre.
+-
+- @param {string} name Nome da tecla (ver Input.binding).
+- @return {boolean}
 --]]
 function Input.idle(name)
 	return (Input.getBinding(name) == Input.state.IDLE)
 end
 
 --[[
-- @return {boolean} Retorna se uma tecla foi pressionada.
-- @param {string} name Nome da tecla.
+- Informa se uma tecla foi ou não pressionada.
+-
+- @param {string} name Nome da tecla (ver Input.binding).
+- @return {boolean}
 --]]
 function Input.pressed(name)
 	return (Input.getBinding(name) == Input.state.PRESSED)
 end
 
 --[[
-- @return {boolean} Retorna se uma tecla está sendo segurada.
-- @param {string} name Nome da tecla.
+- Informa se uma tecla está ou não sendo pressionada até agora.
+-
+- @param {string} name Nome da tecla (ver Input.binding).
+- @return {boolean}
 --]]
 function Input.held(name)
 	return (Input.getBinding(name) == Input.state.HELD)
 end
 
 --[[
-- @return {boolean} Retorna se uma tecla foi solta.
-- @param {string} name Nome da tecla.
+- Informa se uma tecla foi ou não solta.
+-
+- @param {string} name Nome da tecla (ver Input.binding).
+- @return {boolean}
 --]]
 function Input.released(name)
 	return (Input.getBinding(name) == Input.state.RELEASED)
 end
 
 --[[
-- @return {number} Retorna o próximo estado de tecla.
+- Informa o próximo estado de tecla. Usualmente, elas seguem um ciclo, como
+- este, por exemplo: IDLE >> PRESSED >> HELD >> RELEASED >> IDLE >> [...]
+-
 - @param {number} state Estado de tecla.
 - @param {boolean} held Diz se a tecla está sendo pressionada ou não.
+- @return {number}
 --]]
 function Input.nextState(state, held)
 	-- Botão pressionado...

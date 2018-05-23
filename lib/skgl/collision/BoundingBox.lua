@@ -1,44 +1,56 @@
 --[[@meta]]
 BoundingBox = {
-	__index = BoundingBox,
-	__name = "BoundingBox"
+  name = "BoundingBox"
 }
 
-function BoundingBox:new(width, height)
+function BoundingBox.new(width, height)
   --[[@meta]]
-  local this = {
-    type = "BoundingBox",
+  local _self = {
     class = BoundingBox
   }
 
-	this.x       = 0
-	this.y       = 0
-	this._x      = 0 -- (x:sync)
-	this._y      = 0 -- (y:sync)
-	this.width   = width  or 0
-	this.height  = height or 0
+  -- Posição X.
+  _self.x = 0
+
+  -- Posição Y.
+  _self.y = 0
+
+  -- Posição X relativa à original (offset).
+  _self.offsetX = 0
+
+  -- Posição Y relativa à original (offset).
+  _self.offsetY = 0
+
+  -- Largura.
+  _self.width = width or 0
+
+  -- Altura.
+  _self.height = height or 0
 
   --[[
    - Checagem de colisão entre dois retângulos.
+   -
    - @param {BoundingBox} collider Colisor.
    - @return {boolean} Retorna o resultado da colisão.
   --]]
-  function this:intersect(collider)
+  function _self:intersect(collider)
   	return (
-  		self._x < collider._x + collider.width  and
-  		self._x + self.width > collider._x      and
-  		self._y < collider._y + collider.height and
-  		self.height + self._y > collider._y
+  		self.offsetX < collider.offsetX + collider.width  and
+  		self.offsetX + self.width > collider.offsetX      and
+  		self.offsetY < collider.offsetY + collider.height and
+  		self.height + self.offsetY > collider.offsetY
   	)
   end
 
-	--[[
-	- Sincroniza o posicionamento relativo ao parente.
-	--]]
-	function this:syncWith(parent)
-		self._x = self.x + parent._x
-		self._y = self.y + parent._y
-	end
+  --[[
+  - Ajusta o offset da caixa de colisão, sendo relativo a um sprite.
+  -
+  - @param {Sprite} sprite Sprite.
+  --]]
+  function _self:adjustOffset(sprite)
+    self.offsetX = (self.x + sprite.offsetX)
+    self.offsetY = (self.y + sprite.offsetY)
+  end
 
-  return this
+  return _self
 end
