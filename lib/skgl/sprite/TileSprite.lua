@@ -109,8 +109,10 @@ function TileSprite.new(width, height)
   --[[
   - @override
   - Desenha o sprite na tela.
+  -
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw()
+  function _self:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
@@ -118,6 +120,9 @@ function TileSprite.new(width, height)
     -- Ajustar frame e opacidade:
     self:adjustFrame()
     self:adjustOpacity()
+
+    -- Aplicar as velocidades horizontal (posição X) e vertical (posição Y):
+    self:applySpeed()
 
     -- Desenhar o sprite:
     if self.visible == true and self.opacity > 0.0 then
@@ -138,7 +143,7 @@ function TileSprite.new(width, height)
     end
 
     -- Requisitar o próximo frame:
-    self:nextFrame()
+    self:nextFrame(delta)
   end
 
   return _self

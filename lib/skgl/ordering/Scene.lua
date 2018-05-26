@@ -4,7 +4,7 @@ Scene = {
   extends = Array
 }
 
-function Scene.new()
+function Scene.new(width, height)
   --[[@meta : @extends Array]]
   local _self = Array.new()
   _self.class = Scene
@@ -16,10 +16,10 @@ function Scene.new()
   _self.cameraY = 0
 
   -- Dimensão de largura do cenário (usado pela câmera).
-  _self.width = 0
+  _self.width = width or Display.getWidth()
 
   -- Dimensão de altura do cenário (usado pela câmera).
-  _self.height = 0
+  _self.height = height or Display.getHeight()
 
   -- Cor de fundo (quando nulo, sua cor é transparente).
   _self.color = nil
@@ -29,10 +29,17 @@ function Scene.new()
 
   --[[
   - Renderiza a cena na tela.
+  -
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:render()
-    -- Desenhar a cor de fundo:
-    self:drawBackground((self.color):retrieve(), self.opacity)
+  function _self:render(delta)
+    -- Executar evento de "update":
+    self:update(delta)
+
+    -- Desenhar a cor de fundo, caso tenha sido definida:
+    if self.color ~= nil then
+      self:drawBackground((self.color):retrieve(), self.opacity)
+    end
 
     -- Percorrer todos os sprites...
     self:foreach(function(key, value, index)
@@ -40,7 +47,8 @@ function Scene.new()
 
       -- Executar evento de "update" e desenhar o conteúdo do grupo na tela...
       self:adjustCamera(value)
-      value:draw()
+      value:update(delta)
+      value:draw(delta)
     end)
   end
 
@@ -122,6 +130,13 @@ function Scene.new()
 
     end
 
+  end
+
+  --[[
+  - @event
+  - @param {number} delta Variação de tempo.
+  --]]
+  function _self:update(delta)
   end
 
   return _self

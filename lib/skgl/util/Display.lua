@@ -22,6 +22,7 @@ function Display.getHeight()
 end
 
 --[[
+- Desenha uma cor de fundo para a tela.
 -
 - @param {Color} fillColor Cor de preenchimento (ver Color:retrieve()).
 - @param {number} opacity Transparência (de 0.0 a 1.0).

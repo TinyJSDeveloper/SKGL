@@ -33,12 +33,12 @@ function Group.new()
   --[[
   - Define configurações de scroll horizontal e vertical da câmera.
   -
-  - @param {boolean} Habilitar ou desabilitar o scroll horizontal.
-  - @param {boolean} Habilitar ou desabilitar o scroll vertical.
+  - @param {boolean} horizontally Habilitar ou desabilitar o scroll horizontal.
+  - @param {boolean} vertically Habilitar ou desabilitar o scroll vertical.
   --]]
-  function _self:setScroll(horizontal, vertical)
-    self.scrollHorizontally = horizontal or self.scrollHorizontally
-    self.scrollVertically = vertical or self.scrollVertically
+  function _self:setScroll(horizontally, vertically)
+    self.scrollHorizontally = horizontally or false
+    self.scrollVertically = vertically or false
   end
 
   --[[
@@ -55,16 +55,19 @@ function Group.new()
 
   --[[
   - Desenha o grupo na tela.
+  -
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw()
+  function _self:draw(delta)
     -- Percorrer todos os sprites...
     self:foreach(function(key, value, index)
       value.parent = self
 
       -- Executar evento de "update" e desenhar o sprite na tela...
       if not value:isDestroyed() then
-        value:update()
-        value:draw()
+        value:setDelta(delta)
+        value:update(delta)
+        value:draw(delta)
 
       -- ...ou marcá-lo na lista de exclusão, caso tenha sido removido:
       else
@@ -75,6 +78,13 @@ function Group.new()
     -- Remover sprites destruídos e limpar a lista:
     self:removeItems(self._destroyedSprites)
     self._destroyedSprites = {}
+  end
+
+  --[[
+  - @event
+  - @param {number} delta Variação de tempo.
+  --]]
+  function _self:update(delta)
   end
 
   return _self

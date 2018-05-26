@@ -24,6 +24,12 @@ function Sprite.new(width, height)
   -- Posição Y relativa à original (offset).
   _self.offsetY = 0
 
+  -- Velocidade do movimento horizontal (posição X).
+  _self.horizontalSpeed = 0
+
+  -- Velocidade do movimento vertical (posição Y).
+  _self.verticalSpeed = 0
+
   -- Largura.
   _self.width = width or 0
 
@@ -45,8 +51,14 @@ function Sprite.new(width, height)
   -- Frame de animação atual.
   _self.frame = 1
 
-  -- Delay até o próximo frame (de 0.0 até 1.0).
+  -- Delay até o próximo frame (de 0.0 até seu valor máximo).
   _self.frameDelay = 0.0
+
+  -- Tempo máximo de delay até o próximo frame.
+  _self.frameDelayMax = 10.0
+
+  -- Ticks de delay de tempo por frame.
+  _self.frameDelayTick = 1.0
 
   -- Frames de animação disponíveis.
   _self.frames = {0}
@@ -59,6 +71,9 @@ function Sprite.new(width, height)
 
   -- @private Indica se o sprite foi destruído.
   _self._destroyed = false
+
+  -- @private Variação de tempo.
+  _self._delta = 0
 
   --[[
 	- @return {number} Retorna a largura da imagem.
@@ -219,16 +234,18 @@ function Sprite.new(width, height)
 
   --[[
   - Requisita o próximo frame.
+  -
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:nextFrame()
+  function _self:nextFrame(delta)
     -- Ao atingir o tempo de delay, o frame atual será incrementado...
-    if self.frameDelay >= 1.0 then
+    if self.frameDelay >= self.frameDelayMax then
       self.frameDelay = 0.0
       self.frame = (self.frame + 1)
 
     -- ...do contrário, o contador do delay incrementa seu tempo de espera:
     else
-      self.frameDelay = (self.frameDelay + 0.1)
+      self.frameDelay = (self.frameDelay + (self.frameDelayTick * delta))
     end
   end
 
@@ -281,10 +298,18 @@ function Sprite.new(width, height)
   end
 
   --[[
+  - Aplica a velocidade dos movimentos horizontal e vertical.
+  --]]
+  function _self:applySpeed()
+    self:moveX(self.horizontalSpeed)
+    self:moveY(self.verticalSpeed)
+  end
+
+  --[[
 	- Checagem de colisão entre uma lista de sprites (colisores).
   -
 	- @param {Sprite[]} colliders Lista de sprites (colisores).
-	- @return {boolean} Retorna o resultado da colisão.
+	- @return {nil, Sprite[]} Retorna o resultado da colisão.
 	--]]
 	function _self:intersect(colliders)
     -- Resultado final. Seu valor inicial é "nil", mas pode ser alterado para
@@ -324,9 +349,43 @@ function Sprite.new(width, height)
 	end
 
   --[[
-  - Desenha o sprite na tela.
+  - Checagem de colisão entre uma lista de sprites (colisores), mas
+  - considerando estar em outra coordenada.
+  -
+  - @param {number} x Posição X.
+  - @param {number} y Posição Y.
+  - @param {Sprite[]} colliders Lista de sprites (colisores).
+	- @return {nil, Sprite[]} Retorna o resultado da colisão.
   --]]
-  function _self:draw()
+  function _self:intersectAt(x, y, colliders)
+    -- Guardar as posições X e Y deste sprite. Elas serão restauradas depois:
+    local originalX = self.x
+    local originalY = self.y
+
+    -- Mover o sprite para as posições especificadas:
+    self.x = x
+    self.y = y
+
+    -- Obter resultados da colisão:
+    local results = self:intersect(colliders)
+
+    -- Restaurar as posições X e Y deste sprite:
+    self.x = originalX
+    self.y = originalY
+
+    -- Ajustar/sincronizar offsets e caixas de colisão deste sprite:
+    value:adjustOffset()
+    value:adjustBounds()
+
+    return results
+  end
+
+  --[[
+  - Desenha o sprite na tela.
+  -
+  - @param {number} delta Variação de tempo.
+  --]]
+  function _self:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
@@ -335,6 +394,9 @@ function Sprite.new(width, height)
     self:adjustFrame()
     self:adjustOpacity()
 
+    -- Aplicar as velocidades horizontal (posição X) e vertical (posição Y):
+    self:applySpeed()
+
     -- Desenhar o sprite:
     if self.visible == true and self.opacity > 0.0 then
       self:drawColor(self.color, self.offsetX, self.offsetY, self.width, self.height)
@@ -342,13 +404,50 @@ function Sprite.new(width, height)
     end
 
     -- Requisitar o próximo frame:
-    self:nextFrame()
+    self:nextFrame(delta)
+  end
+
+  --[[
+  - Movimenta a posição X do sprite em um valor relativo.
+  -
+  - @param {number} valor Valor relativo do movimento.
+  --]]
+  function _self:moveX(value)
+    self.x = (self.x + (value * self:getDelta()))
+  end
+
+  --[[
+  - Movimenta a posição Y do sprite em um valor relativo.
+  -
+  - @param {number} valor Valor relativo do movimento.
+  --]]
+  function _self:moveY(value)
+    self.y = (self.y + (value * self:getDelta()))
+  end
+
+  --[[
+  - Obtém o valor da variação de tempo.
+  -
+  - @return {number}
+  --]]
+  function _self:getDelta()
+    return self._delta
+  end
+
+  --[[
+  - Define um valor para a variação de tempo.
+  -
+  - @param {number} Variação de tempo.
+  --]]
+  function _self:setDelta(delta)
+    self._delta = delta
   end
 
   --[[
   - @event
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:update()
+  function _self:update(delta)
   end
 
   return _self

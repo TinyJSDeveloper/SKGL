@@ -99,16 +99,47 @@ function TileMap.new(width, height)
   end
 
   --[[
+  - Procura pela ID de um tile que esteja na coordenada especificada.
+  -
+  - @param {number} x Posição X.
+  - @param {number} y Posição Y.
+  - @return {number} Retorna a ID do tile (ou -1 caso não exista).
+  --]]
+  function _self:getTileAt(x, y)
+    if self.tilemap ~= nil then
+      -- Obter posições X e Y relativas ao mapa:
+      local mapX = (x - self.offsetX)
+      local mapY = (y - self.offsetY)
+
+      -- Obter possível ID do tile:
+      local tileX = (math.floor(mapX / self.width)) + 1
+      local tileY = (math.floor(mapY / self.height)) + 1
+
+      -- Se encontrado no mapa de tiles, a ID do tile será retornada:
+      if self.tilemap[tileY] ~= nil and self.tilemap[tileY][tileX] ~= nil then
+        return self.tilemap[tileY][tileX]
+      end
+    end
+
+    return -1
+  end
+
+  --[[
   - @override
   - Desenha o tileset na tela.
+  -
+  - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw()
+  function _self:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
 
     -- Ajustar opacidade:
     self:adjustOpacity()
+
+    -- Aplicar as velocidades horizontal (posição X) e vertical (posição Y):
+    self:applySpeed()
 
     -- Desenhar o tileset:
     if self.visible == true and self.opacity > 0.0 then
