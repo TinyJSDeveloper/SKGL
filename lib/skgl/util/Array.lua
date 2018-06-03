@@ -7,35 +7,44 @@ Array = {
 - Verifica se um determinado item é ou não é uma Array.
 -
 - @param {any} item Item.
+-
 - @return {boolean} Retorna se o item é ou não é uma Array.
 --]]
 function Array.isArray(item)
   return (item.class == Array)
 end
 
+--[[
+- @class Array
+--]]
 function Array.new()
   --[[@meta]]
-  local _self = {
+  local def = {
     class = Array
   }
 
-  -- @private Itens.
-  _self._items = {}
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- @private Itens.
+    self._items = {}
 
-  -- @private Total de itens.
-  _self._length = 0
+    -- @private Total de itens.
+    self._length = 0
+  end
 
   --[[
   - @return {any[]} Itens.
   --]]
-  function _self:items()
+  function def:items()
     return self._items
   end
 
   --[[
   - Total de itens.
   --]]
-  function _self:length()
+  function def:length()
     return self._length
   end
 
@@ -43,9 +52,10 @@ function Array.new()
   - Obtém um item pelo seu índice.
   -
   - @param {number} index Índice (indexação baseada em 0).
+  -
   - @return {any} Retorna o valor ou, caso o índice não exista, nada.
   --]]
-  function _self:get(index)
+  function def:get(index)
     return self._items[(index + 1)]
   end
 
@@ -53,9 +63,10 @@ function Array.new()
   - Obtém o índice de um determinado item.
   -
   - @param {any} item Item.
+  -
   - @return {number} Obtém o índice do item ou, caso não exista, -1.
   --]]
-  function _self:indexOf(item)
+  function def:indexOf(item)
     -- Contador de índices percorridos:
     local index = 0
 
@@ -77,9 +88,10 @@ function Array.new()
   - Obtém o último índice de um determinado item.
   -
   - @param {any} item Item.
+  -
   - @return {number} Obtém o índice do item ou, caso não exista, -1.
   --]]
-  function _self:lastIndexOf(item)
+  function def:lastIndexOf(item)
     -- Contador de índices percorridos:
     local index = 0
 
@@ -104,9 +116,10 @@ function Array.new()
   - Insere um item.
   -
   - @param {any} item Item.
+  -
   - @return {boolean}
   --]]
-  function _self:push(item)
+  function def:push(item)
     table.insert(self._items, item)
     self._length = (self._length + 1)
   end
@@ -116,7 +129,7 @@ function Array.new()
   -
   - @return {any} Retorna o item removido.
   ]]
-  function _self:pop()
+  function def:pop()
     -- Obter último item inserido:
     local item = self.get(self._length - 1)
 
@@ -130,7 +143,7 @@ function Array.new()
   -
   - @param {any[]} items Lista de itens.
   --]]
-  function _self:addItems(items)
+  function def:addItems(items)
     for itemKey, itemValue in pairs(items) do
       self:push(itemValue)
     end
@@ -141,7 +154,7 @@ function Array.new()
   -
   - @param {any[]} items Lista de itens.
   --]]
-  function _self:removeItems(items)
+  function def:removeItems(items)
     -- Converter lista de itens em uma Array (facilita a sua manipulação):
     local itemsArray = Array.new()
     itemsArray:addItems(items)
@@ -184,7 +197,7 @@ function Array.new()
   -
   - @param {number} index Índice.
   --]]
-  function _self:removeIndex(index)
+  function def:removeIndex(index)
     -- Contador de índices percorridos:
     local indexCounter = 0
 
@@ -214,7 +227,7 @@ function Array.new()
   -
   - @param {Function} event Uso: function(key, value, index) ... end
   --]]
-  function _self:foreach(event)
+  function def:foreach(event)
     -- Contador de índices percorridos:
     local index = 0
 
@@ -225,5 +238,6 @@ function Array.new()
     end
   end
 
-  return _self
+  def:__init__()
+  return def
 end

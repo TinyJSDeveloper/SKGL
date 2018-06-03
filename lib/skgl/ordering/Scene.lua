@@ -3,36 +3,46 @@ Scene = {
   name = "Scene",
   extends = Array
 }
-
+--[[
+- @class Scene @extends Array
+-
+- @param {number} width Largura do cenário (usado pela câmera).
+- @param {number} height Altura do cenário (usado pela câmera).
+--]]
 function Scene.new(width, height)
   --[[@meta : @extends Array]]
-  local _self = Array.new()
-  _self.class = Scene
+  local def = Array.new()
+  def.class = Scene
 
-  -- Posição X da câmera.
-  _self.cameraX = 0
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Posição X da câmera.
+    self.cameraX = 0
 
-  -- Posição Y da câmera.
-  _self.cameraY = 0
+    -- Posição Y da câmera.
+    self.cameraY = 0
 
-  -- Dimensão de largura do cenário (usado pela câmera).
-  _self.width = width or Display.getWidth()
+    -- Dimensão de largura do cenário (usado pela câmera).
+    self.width = width or Display.getWidth()
 
-  -- Dimensão de altura do cenário (usado pela câmera).
-  _self.height = height or Display.getHeight()
+    -- Dimensão de altura do cenário (usado pela câmera).
+    self.height = height or Display.getHeight()
 
-  -- Cor de fundo (quando nulo, sua cor é transparente).
-  _self.color = nil
+    -- Cor de fundo (quando nulo, sua cor é transparente).
+    self.color = nil
 
-  -- Opacidade (de 0.0 a 1.0). Vale apenas para a cor de fundo.
-  _self.opacity = 1.0
+    -- Opacidade (de 0.0 a 1.0). Vale apenas para a cor de fundo.
+    self.opacity = 1.0
+  end
 
   --[[
   - Renderiza a cena na tela.
   -
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:render(delta)
+  function def:render(delta)
     -- Executar evento de "update":
     self:update(delta)
 
@@ -47,6 +57,7 @@ function Scene.new(width, height)
 
       -- Executar evento de "update" e desenhar o conteúdo do grupo na tela...
       self:adjustCamera(value)
+      value:setDelta(delta)
       value:update(delta)
       value:draw(delta)
     end)
@@ -58,7 +69,7 @@ function Scene.new(width, height)
   - @param {Color} color Cor.
   - @param {number} opacity Transparência (de 0.0 a 1.0).
   --]]
-  function _self:drawBackground(color, opacity)
+  function def:drawBackground(color, opacity)
     if self.color ~= nil then
       Display.setBackgroundColor(color, opacity)
     end
@@ -69,7 +80,7 @@ function Scene.new(width, height)
   -
   - @param {Group} group Grupo.
   --]]
-  function _self:adjustCamera(group)
+  function def:adjustCamera(group)
     -- Obter as posições X e Y do centro da tela:
     local centerX = (Display.getWidth()  / 2)
     local centerY = (Display.getHeight() / 2)
@@ -133,11 +144,23 @@ function Scene.new(width, height)
   end
 
   --[[
+  - Focaliza a câmera para exibir uma determinada posição.
+  -
+  - @param {number} x Posição X da câmera.
+  - @param {number} y Posição Y da câmera.
+  --]]
+  function def:lookAt(x, y)
+    self.cameraX = x or self.cameraX
+    self.cameraY = y or self.cameraY
+  end
+
+  --[[
   - @event
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:update(delta)
+  function def:update(delta)
   end
 
-  return _self
+  def:__init__()
+  return def
 end

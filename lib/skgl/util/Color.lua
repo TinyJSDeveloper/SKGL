@@ -3,29 +3,42 @@ Color = {
   name = "Color"
 }
 
+--[[
+- @class Color
+-
+- @param {number} r Canal de cor vermelho.
+- @param {number} g Canal de cor verde.
+- @param {number} b Canal de cor azul.
+--]]
 function Color.new(r, g, b)
   --[[@meta]]
-  local _self = {
+  local def = {
     class = Color
   }
 
-  -- Canal de cor vermelho.
-  _self.r = r or 0
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Canal de cor vermelho.
+    self.r = r or 0
 
-  -- Canal de cor amarelo.
-  _self.g = g or 0
+    -- Canal de cor verde.
+    self.g = g or 0
 
-  -- Canal de cor azul.
-  _self.b = b or 0
+    -- Canal de cor azul.
+    self.b = b or 0
+  end
 
   --[[
   - Ajusta um valor para que ele seja válido como um canal RGB. O valor
   - retornado deve permanecer entre 0 e 255.
   -
   - @param {number} channel Canal de cor.
+  -
   - @return {number}
   --]]
-  function _self:adjustChannel(channel)
+  function def:adjustChannel(channel)
     if channel < 0 then
       return 0
     elseif channel > 255 then
@@ -41,7 +54,7 @@ function Color.new(r, g, b)
   -
   - @return {object}
   --]]
-  function _self:retrieve()
+  function def:retrieve()
     self.r = self:adjustChannel(self.r)
     self.g = self:adjustChannel(self.g)
     self.b = self:adjustChannel(self.b)
@@ -50,5 +63,6 @@ function Color.new(r, g, b)
     return colorObject
   end
 
-  return _self
+  def:__init__()
+  return def
 end

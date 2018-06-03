@@ -3,82 +3,102 @@ Sprite = {
   name = "Sprite"
 }
 
+--[[
+- @class Sprite
+-
+- @param {number} width Largura do sprite.
+- @param {number} height Altura do sprite.
+--]]
 function Sprite.new(width, height)
   --[[@meta]]
-  local _self = {
+  local def = {
     class = Sprite
   }
 
-  -- Parente do sprite. O posicionamento do sprite é relativo ao parente.
-  _self.parent = nil
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Parente do sprite. O posicionamento do sprite é relativo ao parente.
+    self.parent = nil
 
-  -- Posição X.
-  _self.x = 0
+    -- Cena do sprite.
+    self.scene = nil
 
-  -- Posição Y.
-  _self.y = 0
+    -- Posição X.
+    self.x = 0
 
-  -- Posição X relativa à original (offset).
-  _self.offsetX = 0
+    -- Posição Y.
+    self.y = 0
 
-  -- Posição Y relativa à original (offset).
-  _self.offsetY = 0
+    -- Posição X de origem (afeta a posição de desenho e da caixa de colisão).
+    self.originX = 0
 
-  -- Velocidade do movimento horizontal (posição X).
-  _self.horizontalSpeed = 0
+    -- Posição Y de origem (afeta a posição de desenho e da caixa de colisão).
+    self.originY = 0
 
-  -- Velocidade do movimento vertical (posição Y).
-  _self.verticalSpeed = 0
+    -- Posição X relativa à original (offset).
+    self.offsetX = 0
 
-  -- Largura.
-  _self.width = width or 0
+    -- Posição Y relativa à original (offset).
+    self.offsetY = 0
 
-  -- Altura.
-  _self.height = height or 0
+    -- Velocidade do movimento horizontal (posição X).
+    self.horizontalSpeed = 0
 
-  -- Spritesheet.
-  _self.image = nil
+    -- Velocidade do movimento vertical (posição Y).
+    self.verticalSpeed = 0
 
-  -- Atlas de imagens.
-  _self.imageAtlas = nil
+    -- Largura.
+    self.width = width or 0
 
-  -- Cor de fundo (quando nulo, sua cor é transparente).
-  _self.color = nil
+    -- Altura.
+    self.height = height or 0
 
-  -- Opacidade (de 0.0 a 1.0).
-  _self.opacity = 1.0
+    -- Spritesheet.
+    self.image = nil
 
-  -- Frame de animação atual.
-  _self.frame = 1
+    -- Atlas de imagens.
+    self.imageAtlas = nil
 
-  -- Delay até o próximo frame (de 0.0 até seu valor máximo).
-  _self.frameDelay = 0.0
+    -- Cor de fundo (quando nulo, sua cor é transparente).
+    self.color = nil
 
-  -- Tempo máximo de delay até o próximo frame.
-  _self.frameDelayMax = 10.0
+    -- Opacidade (de 0.0 a 1.0).
+    self.opacity = 1.0
 
-  -- Ticks de delay de tempo por frame.
-  _self.frameDelayTick = 1.0
+    -- Frame de animação atual.
+    self.frame = 1
 
-  -- Frames de animação disponíveis.
-  _self.frames = {0}
+    -- Delay até o próximo frame (de 0.0 até seu valor máximo).
+    self.frameDelay = 0.0
 
-  -- Visibilidade.
-  _self.visible = true
+    -- Tempo máximo de delay até o próximo frame.
+    self.frameDelayMax = 10.0
 
-  -- Caixa de colisão.
-  _self.bounds = BoundingBox.new(_self.width, _self.height)
+    -- Ticks de delay de tempo por frame.
+    self.frameDelayTick = 1.0
 
-  -- @private Indica se o sprite foi destruído.
-  _self._destroyed = false
+    -- Frames de animação disponíveis.
+    self.frames = {0}
 
-  -- @private Variação de tempo.
-  _self._delta = 0
+    -- Visibilidade.
+    self.visible = true
+
+    -- Caixa de colisão.
+    self.bounds = BoundingBox.new(def.width, def.height)
+
+    -- @private Indica se o sprite foi destruído.
+    self._destroyed = false
+
+    -- @private Variação de tempo.
+    self._delta = 0
+  end
 
   --[[
 	- @return {number} Retorna a largura da imagem.
 	--]]
-	function _self:getImageWidth()
+	function def:getImageWidth()
 		if self.image ~= nil then
 			return Surface.getImageWidth(self.image)
 		else
@@ -89,7 +109,7 @@ function Sprite.new(width, height)
 	--[[
 	- @return {number} Retorna a altura da imagem.
 	--]]
-	function _self:getImageHeight()
+	function def:getImageHeight()
 		if self.image ~= nil then
 			return Surface.getImageHeight(self.image)
 		else
@@ -100,7 +120,7 @@ function Sprite.new(width, height)
   --[[
 	- @return {Object} Cria automaticamente um atlas de imagens.
 	- ]]
-	function _self:createImageAtlas()
+	function def:createImageAtlas()
     -- O atlas de imagens será criado nesta variável:
     local imageAtlas = {}
 
@@ -133,14 +153,14 @@ function Sprite.new(width, height)
   --[[
   - @return {boolean} Indica se o sprite foi destruído.
   --]]
-  function _self:isDestroyed()
+  function def:isDestroyed()
     return self._destroyed
   end
 
   --[[
   - Destrói o sprite.
   --]]
-  function _self:destroy()
+  function def:destroy()
     -- Marcar o sprite para a exclusão:
     if not self._destroyed then
       self._destroyed = true
@@ -158,7 +178,7 @@ function Sprite.new(width, height)
   -
   - @param {number} frame Índice do frame.
   --]]
-  function _self:getFrame(frame)
+  function def:getFrame(frame)
     if self.frames[frame] ~= nil then
       return self.frames[frame]
     else
@@ -175,7 +195,7 @@ function Sprite.new(width, height)
   - @param {number} width Largura do retângulo.
   - @param {number} height Altura do retângulo.
   --]]
-  function _self:drawColor(color, x, y, width, height)
+  function def:drawColor(color, x, y, width, height)
     if self.color ~= nil then
 
       -- Desenhar um retângulo em volta do sprite:
@@ -198,7 +218,7 @@ function Sprite.new(width, height)
   - @param {number} x Posição X de desenho.
   - @param {number} y Posição Y de desenho.
   --]]
-  function _self:drawFrame(frame, x, y)
+  function def:drawFrame(frame, x, y)
     if self.image ~= nil then
 
       -- Criar um atlas de imagens, caso não exista:
@@ -226,7 +246,7 @@ function Sprite.new(width, height)
   --[[
   - Ajusta o índice do frame atual, caso necessário.
   --]]
-  function _self:adjustFrame()
+  function def:adjustFrame()
 		if self.frames[self.frame] == nil then
 			self.frame = 1
 		end
@@ -237,7 +257,7 @@ function Sprite.new(width, height)
   -
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:nextFrame(delta)
+  function def:nextFrame(delta)
     -- Ao atingir o tempo de delay, o frame atual será incrementado...
     if self.frameDelay >= self.frameDelayMax then
       self.frameDelay = 0.0
@@ -252,7 +272,7 @@ function Sprite.new(width, height)
   --[[
   - Ajusta o nível de opacidade atual, caso necessário.
   --]]
-  function _self:adjustOpacity()
+  function def:adjustOpacity()
 		if self.opacity <= 0.0 then
 			self.opacity = 0.0
     elseif self.opacity >= 1.0 then
@@ -264,7 +284,7 @@ function Sprite.new(width, height)
   - Redimensiona a caixa de colisão de acordo com os atributos de altura e
   - largura do sprite.
   --]]
-  function _self:resizeBounds()
+  function def:resizeBounds()
     if self.bounds ~= nil then
       self.bounds.width = self.width
       self.bounds.height = self.height
@@ -274,7 +294,7 @@ function Sprite.new(width, height)
   --[[
   - Ajusta/sincroniza o posicionamento da caixa de colisão do sprite.
   --]]
-  function _self:adjustBounds()
+  function def:adjustBounds()
     if self.bounds ~= nil then
       self.bounds:adjustOffset(self)
     end
@@ -283,12 +303,12 @@ function Sprite.new(width, height)
   --[[
   - Ajusta o offset do sprite, sendo relativo ao parente.
   --]]
-  function _self:adjustOffset()
+  function def:adjustOffset()
     -- Caso o sprite tenha um parente definido, seu posicionamento será
     -- relativo a ele...
     if self.parent ~= nil then
-      self.offsetX = (self.x + self.parent.x)
-      self.offsetY = (self.y + self.parent.y)
+      self.offsetX = (self.x + self.parent.x) - self.originX
+      self.offsetY = (self.y + self.parent.y) - self.originY
 
     -- ...do contrário, nada de posicionamento absoluto:
     else
@@ -300,7 +320,7 @@ function Sprite.new(width, height)
   --[[
   - Aplica a velocidade dos movimentos horizontal e vertical.
   --]]
-  function _self:applySpeed()
+  function def:applySpeed()
     self:moveX(self.horizontalSpeed)
     self:moveY(self.verticalSpeed)
   end
@@ -309,9 +329,10 @@ function Sprite.new(width, height)
 	- Checagem de colisão entre uma lista de sprites (colisores).
   -
 	- @param {Sprite[]} colliders Lista de sprites (colisores).
+  -
 	- @return {nil, Sprite[]} Retorna o resultado da colisão.
 	--]]
-	function _self:intersect(colliders)
+	function def:intersect(colliders)
     -- Resultado final. Seu valor inicial é "nil", mas pode ser alterado para
     -- uma lista no decorrer do código. Caso não seja, o valor "nil" é
     -- retornado, indicando que não houveram colisões.
@@ -355,9 +376,10 @@ function Sprite.new(width, height)
   - @param {number} x Posição X.
   - @param {number} y Posição Y.
   - @param {Sprite[]} colliders Lista de sprites (colisores).
+  -
 	- @return {nil, Sprite[]} Retorna o resultado da colisão.
   --]]
-  function _self:intersectAt(x, y, colliders)
+  function def:intersectAt(x, y, colliders)
     -- Guardar as posições X e Y deste sprite. Elas serão restauradas depois:
     local originalX = self.x
     local originalY = self.y
@@ -374,10 +396,40 @@ function Sprite.new(width, height)
     self.y = originalY
 
     -- Ajustar/sincronizar offsets e caixas de colisão deste sprite:
-    value:adjustOffset()
-    value:adjustBounds()
+    self:adjustOffset()
+    self:adjustBounds()
 
     return results
+  end
+
+  --[[
+  - Checagem de colisão entre uma lista de sprites (colisores), mas
+  - considerando estar em outra coordenada.
+  -
+  - Diferente da funçào "intersectAt()", esta não leva em consideração a caixa
+  - de colisão deste sprite, mas sim uma coordenada absoluta.
+  -
+  - @param {number} x Posição X.
+  - @param {number} y Posição Y.
+  - @param {Sprite[]} colliders Lista de sprites (colisores).
+  -
+	- @return {nil, Sprite[]} Retorna o resultado da colisão.
+  --]]
+  function def:placeFreeAt(x, y, colliders)
+    -- Salvar e zerar a caixa de colisão deste sprite temporariamente:
+    local bounds = self.bounds
+    self.bounds = nil
+
+    -- Criar um sprite pequeno, usado para testar a coordenada especificada:
+    local testSprite = Sprite.new(1, 1)
+          testSprite.x = x
+          testSprite.y = y
+
+    -- Checar colisões e restaurar caixa de colisão original:
+    local collisions = testSprite:intersect(colliders)
+    self.bounds = bounds
+
+    return collisions
   end
 
   --[[
@@ -385,7 +437,7 @@ function Sprite.new(width, height)
   -
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw(delta)
+  function def:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
@@ -408,11 +460,37 @@ function Sprite.new(width, height)
   end
 
   --[[
+  - Obtém o valor resultante ao movimentar a posição X do sprite em um valor
+  - relativo. Ao contrário da "moveX()", esta apenas retorna o valor calculado,
+  - ou seja, não altera a posição do sprite.
+  -
+  - @param {number} value Valor relativo ao movimento.
+  -
+  - @return {number}
+  --]]
+  function def:getMoveX(value)
+    return (self.x + (value * self:getDelta()))
+  end
+
+  --[[
+  - Obtém o valor resultante ao movimentar a posição Y do sprite em um valor
+  - relativo. Ao contrário da "moveY()", esta apenas retorna o valor calculado,
+  - ou seja, não altera a posição do sprite.
+  -
+  - @param {number} value Valor relativo ao movimento.
+  -
+  - @return {number}
+  --]]
+  function def:getMoveY(value)
+    return (self.y + (value * self:getDelta()))
+  end
+
+  --[[
   - Movimenta a posição X do sprite em um valor relativo.
   -
-  - @param {number} valor Valor relativo do movimento.
+  - @param {number} value Valor relativo do movimento.
   --]]
-  function _self:moveX(value)
+  function def:moveX(value)
     self.x = (self.x + (value * self:getDelta()))
   end
 
@@ -421,7 +499,7 @@ function Sprite.new(width, height)
   -
   - @param {number} valor Valor relativo do movimento.
   --]]
-  function _self:moveY(value)
+  function def:moveY(value)
     self.y = (self.y + (value * self:getDelta()))
   end
 
@@ -430,7 +508,7 @@ function Sprite.new(width, height)
   -
   - @return {number}
   --]]
-  function _self:getDelta()
+  function def:getDelta()
     return self._delta
   end
 
@@ -439,16 +517,35 @@ function Sprite.new(width, height)
   -
   - @param {number} Variação de tempo.
   --]]
-  function _self:setDelta(delta)
+  function def:setDelta(delta)
     self._delta = delta
+  end
+
+  --[[
+  - Define valores para as posições de origem do sprite.
+  -
+  - @param {number} originX Posição X de origem.
+  - @param {number} originY Posição Y de origem.
+  --]]
+  function def:setOrigins(originX, originY)
+    self.originX = originX or 0
+    self.originY = originY or 0
+  end
+
+  --[[
+  - Centraliza as posições de origem do sprite automaticamente.
+  --]]
+  function def:centerOrigins()
+    self.setOrigins((self.width / 2), (self.height / 2))
   end
 
   --[[
   - @event
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:update(delta)
+  function def:update(delta)
   end
 
-  return _self
+  def:__init__()
+  return def
 end

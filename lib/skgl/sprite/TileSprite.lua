@@ -4,23 +4,34 @@ TileSprite = {
   extends = TileSprite
 }
 
+--[[
+- @class TileSprite @extends Sprite
+-
+- @param {number} width Largura dos tiles.
+- @param {number} height Altura dos tiles.
+--]]
 function TileSprite.new(width, height)
   --[[@meta : @extends Sprite]]
-  local _self = Sprite.new(width, height)
-  _self.class = TileSprite
+  local def = Sprite.new(width, height)
+  def.class = TileSprite
 
-  -- Largura do mapa.
-  _self.mapWidth = 0
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Largura do mapa.
+    self.mapWidth = 0
 
-  -- Altura do mapa.
-  _self.mapHeight = 0
+    -- Altura do mapa.
+    self.mapHeight = 0
+  end
 
   --[[
   - @override
   - Redimensiona a caixa de colisão de acordo com os atributos de altura e
   - largura do sprite.
   --]]
-  function _self:resizeBounds()
+  function def:resizeBounds()
     if self.bounds ~= nil then
       self.bounds.width = self.mapWidth
       self.bounds.height = self.mapHeight
@@ -33,7 +44,7 @@ function TileSprite.new(width, height)
   - @param {number} mapWidth Largura do mapa.
   - @param {number} mapHeight Altura do mapa.
   --]]
-  function _self:setMapSize(mapWidth, mapHeight)
+  function def:setMapSize(mapWidth, mapHeight)
     self.mapWidth = mapWidth or self.mapWidth
     self.mapHeight = mapHeight or self.mapHeight
   end
@@ -46,7 +57,7 @@ function TileSprite.new(width, height)
 	- @param {number} tileWidth Largura original dos tiles.
 	- @param {number} tileHeight Altura original dos tiles.
   --]]
-  function _self:drawFrameRow(width, height, tileWidth, tileHeight)
+  function def:drawFrameRow(width, height, tileWidth, tileHeight)
     while width < self.mapWidth do
       -- Desenhar tiles de forma ordenada...
 			if (width + self.width) < self.mapWidth then
@@ -78,7 +89,7 @@ function TileSprite.new(width, height)
   --[[
   - Desenha várias colunas de tiles.
   --]]
-  function  _self:drawFrameColumns()
+  function  def:drawFrameColumns()
     -- Contadores de tamanho (largura e altura):
     local width = 0
     local height = 0
@@ -112,7 +123,7 @@ function TileSprite.new(width, height)
   -
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw(delta)
+  function def:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
@@ -146,5 +157,6 @@ function TileSprite.new(width, height)
     self:nextFrame(delta)
   end
 
-  return _self
+  def:__init__()
+  return def
 end

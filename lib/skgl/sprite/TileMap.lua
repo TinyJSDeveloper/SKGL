@@ -4,26 +4,37 @@ TileMap = {
   extends = Sprite
 }
 
+--[[
+- @class TileMap @extends Sprite
+-
+- @param {number} width Largura dos tiles.
+- @param {number} height Altura dos tiles.
+--]]
 function TileMap.new(width, height)
   --[[@meta : @extends Sprite]]
-  local _self = Sprite.new(width, height)
-  _self.class = TileMap
+  local def = Sprite.new(width, height)
+  def.class = TileMap
 
-  -- Mapa de tiles.
-  _self.tilemap = nil
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Mapa de tiles.
+    self.tilemap = nil
 
-  -- @private Valor máximo de linhas.
-  _self._maxRows = 0
+    -- @private Valor máximo de linhas.
+    self._maxRows = 0
 
-  -- @private Valor máximo de colunas.
-  _self._maxCols = 0
+    -- @private Valor máximo de colunas.
+    self._maxCols = 0
+  end
 
   --[[
   - @override
   - Redimensiona a caixa de colisão de acordo com os atributos de altura e
   - largura do tileset.
   --]]
-  function _self:resizeBounds()
+  function def:resizeBounds()
     if self.bounds ~= nil and self.tilemap ~= nil then
 
       -- Valores máximos de linhas e colunas presentes no mapa de tiles:
@@ -64,26 +75,22 @@ function TileMap.new(width, height)
   -
   - @param {Array(number[])} Mapa de tiles a ser usado pelo tileset.
   --]]
-  function _self:setTilemap(tilemap)
+  function def:setTilemap(tilemap)
     self.tilemap = tilemap
     self:resizeBounds()
   end
 
   --[[
-  - Obtém o valor máximo de linhas.
-  -
-  - @return {number}
+  - @return {number} Obtém o valor máximo de linhas.
   --]]
-  function _self:getMaxRows()
+  function def:getMaxRows()
     return self._maxRows
   end
 
   --[[
-  - Obtém o valor máximo de colunas.
-  -
-  - @return {number}
+  - @return {number} Obtém o valor máximo de colunas.
   --]]
-  function _self:getMaxCols()
+  function def:getMaxCols()
     return self._maxCols
   end
 
@@ -94,7 +101,7 @@ function TileMap.new(width, height)
   - @param {number} x Posição X de desenho.
   - @param {number} y Posição Y de desenho.
   --]]
-  function _self:drawTile(tile, x, y)
+  function def:drawTile(tile, x, y)
     self:drawFrame(tile, x, y)
   end
 
@@ -103,9 +110,10 @@ function TileMap.new(width, height)
   -
   - @param {number} x Posição X.
   - @param {number} y Posição Y.
+  -
   - @return {number} Retorna a ID do tile (ou -1 caso não exista).
   --]]
-  function _self:getTileAt(x, y)
+  function def:getTileAt(x, y)
     if self.tilemap ~= nil then
       -- Obter posições X e Y relativas ao mapa:
       local mapX = (x - self.offsetX)
@@ -130,7 +138,7 @@ function TileMap.new(width, height)
   -
   - @param {number} delta Variação de tempo.
   --]]
-  function _self:draw(delta)
+  function def:draw(delta)
     -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
     self:adjustOffset()
     self:adjustBounds()
@@ -166,5 +174,6 @@ function TileMap.new(width, height)
     end
   end
 
-  return _self
+  def:__init__()
+  return def
 end

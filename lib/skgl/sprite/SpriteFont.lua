@@ -4,23 +4,36 @@ SpriteFont = {
   extends = Sprite
 }
 
+--[[
+- @class SpriteFont @extends Sprite
+-
+- @param {number} width Largura dos caracteres.
+- @param {number} height Altura dos caracteres.
+--]]
 function SpriteFont.new(width, height)
   --[[@meta : @extends Sprite]]
-  local _self = Sprite.new(width, height)
-  _self.class = SpriteFont
-
-  -- Set de caracteres usados pela fonte.
-  _self.charset = ""
-
-  -- Mapa de caracteres.
-  _self.charmap = nil
+  local def = Sprite.new(width, height)
+  def.class = SpriteFont
 
   --[[
-  - @return {Object} Cria automaticamente um mapa de caracteres.
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Set de caracteres usados pela fonte.
+    self.charset = ""
+
+    -- Mapa de caracteres.
+    self.charmap = nil
+  end
+
+  --[[
+  - Cria automaticamente um mapa de caracteres.
   -
   - @param {string} charset Set de caracteres a ser mapeado.
+  -
+  - @return {Object}
   --]]
-  function _self:createCharmap(charset)
+  function def:createCharmap(charset)
     -- O mapa de caracteres será criado nesta variável:
     local charmap = {}
 
@@ -42,7 +55,7 @@ function SpriteFont.new(width, height)
   -
   - @param {string} charset Set de caracteres a ser usado pela fonte.
   --]]
-  function _self:setCharset(charset)
+  function def:setCharset(charset)
     self.charset = charset
     self.charmap = self:createCharmap(charset)
   end
@@ -54,7 +67,7 @@ function SpriteFont.new(width, height)
   - @param {number} x Posição X de desenho.
   - @param {number} y Posição Y de desenho.
   --]]
-  function _self:drawChar(char, x, y)
+  function def:drawChar(char, x, y)
     if self.charmap[char] ~= nil then
       local charData = self.charmap[char]
       self:drawFrame(charData.index, x, y)
@@ -64,7 +77,7 @@ function SpriteFont.new(width, height)
   --[[
   - Escreve o texto na tela.
   --]]
-  function _self:print(x, y, text)
+  function def:print(x, y, text)
     -- Linha e coluna iniciais:
     local row = 1
     local col = 1
@@ -99,5 +112,6 @@ function SpriteFont.new(width, height)
     end
   end
 
-  return _self
+  def:__init__()
+  return def
 end

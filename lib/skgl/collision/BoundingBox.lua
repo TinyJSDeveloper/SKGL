@@ -3,37 +3,49 @@ BoundingBox = {
   name = "BoundingBox"
 }
 
+--[[
+- @class BoundingBox
+-
+- @param {number} width Largura da caixa de colisão.
+- @param {number} height Altura da caixa de colisão.
+--]]
 function BoundingBox.new(width, height)
   --[[@meta]]
-  local _self = {
+  local def = {
     class = BoundingBox
   }
 
-  -- Posição X.
-  _self.x = 0
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- Posição X.
+    self.x = 0
 
-  -- Posição Y.
-  _self.y = 0
+    -- Posição Y.
+    self.y = 0
 
-  -- Posição X relativa à original (offset).
-  _self.offsetX = 0
+    -- Posição X relativa à original (offset).
+    self.offsetX = 0
 
-  -- Posição Y relativa à original (offset).
-  _self.offsetY = 0
+    -- Posição Y relativa à original (offset).
+    self.offsetY = 0
 
-  -- Largura.
-  _self.width = width or 0
+    -- Largura.
+    self.width = width or 0
 
-  -- Altura.
-  _self.height = height or 0
+    -- Altura.
+    self.height = height or 0
+  end
 
   --[[
    - Checagem de colisão entre dois retângulos.
    -
    - @param {BoundingBox} collider Colisor.
+   -
    - @return {boolean} Retorna o resultado da colisão.
   --]]
-  function _self:intersect(collider)
+  function def:intersect(collider)
   	return (
   		self.offsetX < collider.offsetX + collider.width  and
   		self.offsetX + self.width > collider.offsetX      and
@@ -47,10 +59,11 @@ function BoundingBox.new(width, height)
   -
   - @param {Sprite} sprite Sprite.
   --]]
-  function _self:adjustOffset(sprite)
+  function def:adjustOffset(sprite)
     self.offsetX = (self.x + sprite.offsetX)
     self.offsetY = (self.y + sprite.offsetY)
   end
 
-  return _self
+  def:__init__()
+  return def
 end

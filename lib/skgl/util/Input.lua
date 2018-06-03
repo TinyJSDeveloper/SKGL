@@ -57,6 +57,7 @@ end
 - Obtém o estado de uma tecla associada.
 -
 - @param {string} name Nome da tecla (ver Input.binding).
+-
 - @return {number}
 --]]
 function Input.getBinding(name)
@@ -67,6 +68,7 @@ end
 - Informa se uma tecla está ou não está livre.
 -
 - @param {string} name Nome da tecla (ver Input.binding).
+-
 - @return {boolean}
 --]]
 function Input.idle(name)
@@ -77,6 +79,7 @@ end
 - Informa se uma tecla foi ou não pressionada.
 -
 - @param {string} name Nome da tecla (ver Input.binding).
+-
 - @return {boolean}
 --]]
 function Input.pressed(name)
@@ -87,6 +90,7 @@ end
 - Informa se uma tecla está ou não sendo pressionada até agora.
 -
 - @param {string} name Nome da tecla (ver Input.binding).
+-
 - @return {boolean}
 --]]
 function Input.held(name)
@@ -97,6 +101,7 @@ end
 - Informa se uma tecla foi ou não solta.
 -
 - @param {string} name Nome da tecla (ver Input.binding).
+-
 - @return {boolean}
 --]]
 function Input.released(name)
@@ -109,6 +114,7 @@ end
 -
 - @param {number} state Estado de tecla.
 - @param {boolean} held Diz se a tecla está sendo pressionada ou não.
+-
 - @return {number}
 --]]
 function Input.nextState(state, held)

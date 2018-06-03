@@ -3,24 +3,32 @@ Clock = {
   name = "Clock"
 }
 
+--[[
+- @class Clock
+--]]
 function Clock.new()
   --[[@meta]]
-  local _self = {
+  local def = {
     class = Clock
   }
 
-  -- @private Cronômetro (timer do ONELua).
-  _self._cronometer = timer.new()
+  --[[
+  - @constructor
+  --]]
+  function def:__init__()
+    -- @private Cronômetro (timer do ONELua).
+    self._cronometer = timer.new()
 
-  -- @private Último tempo salvo cronometrado.
-  _self._savedTime = 0
+    -- @private Último tempo salvo cronometrado.
+    self._savedTime = 0
+  end
 
   --[[
   - Inicia o cronômetro.
   -
   - @return {number} Retorna o tempo que foi iniciado (em milissegundos).
   --]]
-  function _self:start()
+  function def:start()
     return timer.start(self._cronometer)
   end
 
@@ -29,7 +37,7 @@ function Clock.new()
   -
   - @return {number} Retorna o tempo que foi parado (em milissegundos).
   --]]
-  function _self:stop()
+  function def:stop()
     return timer.stop(self._cronometer)
   end
 
@@ -38,7 +46,7 @@ function Clock.new()
   -
   - @return {number} Retorna o tempo que foi reiniciado (em milissegundos).
   --]]
-  function _self:reset()
+  function def:reset()
     return timer.reset(self._cronometer)
   end
 
@@ -47,7 +55,7 @@ function Clock.new()
   -
   - @return {number} Retorna o tempo atual (em milissegundos).
   --]]
-  function _self:getTime()
+  function def:getTime()
     return timer.time(self._cronometer)
   end
 
@@ -56,7 +64,7 @@ function Clock.new()
   -
   - @return {number} Retorna o tempo salvo (em milissegundos).
   --]]
-  function _self:save()
+  function def:save()
     self._savedTime = self:getTime()
     return self._savedTime
   end
@@ -64,7 +72,7 @@ function Clock.new()
   --[[
   - Limpa todo o cronômetro, reiniciando o cronômetro e zerando o tempo salvo.
   --]]
-  function _self:clear()
+  function def:clear()
     self.savedTime = 0
     self:reset()
   end
@@ -74,14 +82,14 @@ function Clock.new()
   -
   - @return {object}
   --]]
-  function _self:getCronometer()
+  function def:getCronometer()
     return self._cronometer
   end
 
   --[[
   - Obtém o tempo salvo cronometrado.
   --]]
-  function _self:getSavedTime()
+  function def:getSavedTime()
     return self._savedTime
   end
 
@@ -89,9 +97,10 @@ function Clock.new()
   - Obtém o total de tempo passado (em milissegundos). Utiliza como base o
   - último tempo salvo cronometrado e o tempo atual do cronômetro.
   --]]
-  function _self:getElapsedTime()
+  function def:getElapsedTime()
     return self:getTime() - self._savedTime
   end
 
-  return _self
+  def:__init__()
+  return def
 end
