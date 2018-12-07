@@ -43,9 +43,6 @@ function Scene.new(width, height)
   - @param {number} delta Variação de tempo.
   --]]
   function def:render(delta)
-    -- Executar evento de "update":
-    self:update(delta)
-
     -- Desenhar a cor de fundo, caso tenha sido definida:
     if self.color ~= nil then
       self:drawBackground((self.color):retrieve(), self.opacity)
@@ -58,9 +55,12 @@ function Scene.new(width, height)
       -- Executar evento de "update" e desenhar o conteúdo do grupo na tela...
       self:adjustCamera(value)
       value:setDelta(delta)
-      value:update(delta)
       value:draw(delta)
+      value:update(delta)
     end)
+
+    -- Executar evento de "update":
+    self:update(delta)
   end
 
   --[[
@@ -81,9 +81,13 @@ function Scene.new(width, height)
   - @param {Group} group Grupo.
   --]]
   function def:adjustCamera(group)
+    -- Calcular posicionamento de ajuste da tela do console:
+    local displayWidth  = Display.getWidth()  + Display.getX()
+    local displayHeight = Display.getHeight() + Display.getY()
+
     -- Obter as posições X e Y do centro da tela:
-    local centerX = (Display.getWidth()  / 2)
-    local centerY = (Display.getHeight() / 2)
+    local centerX = (displayWidth  / 2) - Display.getX()
+    local centerY = (displayHeight / 2) - Display.getY()
 
     -- Posicionamento de scroll (X):
     if group.scrollHorizontally == true then
