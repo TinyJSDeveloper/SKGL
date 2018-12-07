@@ -50,10 +50,19 @@ function Sprite.new(width, height)
     self.verticalSpeed = 0
 
     -- Largura.
-    self.width = width or 0
+    self.width = width or 1
 
     -- Altura.
-    self.height = height or 0
+    self.height = height or 1
+
+    -- Rotação.
+    self.rotation = 0
+
+    -- Escala horizontal do sprite.
+    self.scaleX = 1
+
+    -- Escala vertical do sprite.
+    self.scaleY = 1
 
     -- Spritesheet.
     self.image = nil
@@ -81,6 +90,12 @@ function Sprite.new(width, height)
 
     -- Frames de animação disponíveis.
     self.frames = {0}
+
+    -- Nome da animação atual.
+    self.animation = ""
+
+    -- Catálogo de animações.
+    self.animations = {}
 
     -- Visibilidade.
     self.visible = true
@@ -187,6 +202,39 @@ function Sprite.new(width, height)
   end
 
   --[[
+  - Adiciona uma animação para este sprite.
+  -
+  - @param {string} name Nome da animação.
+  - @param {number[]} frames Frames Frames de animação.
+  --]]
+  function def:addAnimation(name, frames)
+    self.animations[name] = frames or {0}
+  end
+
+  --[[
+  - Define uma animação para este sprite.
+  -
+  - @param {string} name Nome da animação.
+  - @param {number} frame Frame de animação (opcional).
+  --]]
+  function def:setAnimation(name, frame)
+    self.animation = name or ""
+    self.frames = self.animations[name] or {0}
+    self.frame = frame or self.frame
+  end
+
+  --[[
+  - Remove uma animação deste sprite.
+  -
+  - @param {string} name Nome da animação.
+  --]]
+  function def:removeAnimation(name)
+    local frames = self.animations[name]
+    table.remove(self.animations, frames)
+    return frames
+  end
+
+  --[[
   - Desenha uma retângulo colorido na tela. Cobre todas as dimensões do sprite.
   -
   - @param {Color} color Cor.
@@ -249,7 +297,19 @@ function Sprite.new(width, height)
   function def:adjustFrame()
 		if self.frames[self.frame] == nil then
 			self.frame = 1
+      self:animationEnded()
 		end
+  end
+
+  --[[
+  - Define o controle dos ticks de delay usados para animar o sprite.
+  -
+  - @param {number} frameDelayTick Ticks de delay de tempo por frame.
+  - @param {number} frameDelayMax Tempo máximo de delay até o próximo frame.
+  --]]
+  function def:setFrameDelay(frameDelayTick, frameDelayMax)
+    self.frameDelayTick = frameDelayTick or self.frameDelayTick
+    self.frameDelayMax = frameDelayMax or self.frameDelayMax
   end
 
   --[[
@@ -450,7 +510,7 @@ function Sprite.new(width, height)
     self:applySpeed()
 
     -- Desenhar o sprite:
-    if self.visible == true and self.opacity > 0.0 then
+    if self.visible == true and self.opacity > 0.0 and self:isInsideScreen() == true then
       self:drawColor(self.color, self.offsetX, self.offsetY, self.width, self.height)
       self:drawFrame(self:getFrame(self.frame), self.offsetX, self.offsetY)
     end
@@ -536,7 +596,27 @@ function Sprite.new(width, height)
   - Centraliza as posições de origem do sprite automaticamente.
   --]]
   function def:centerOrigins()
-    self.setOrigins((self.width / 2), (self.height / 2))
+    self:setOrigins((self.width / 2), (self.height / 2))
+  end
+
+  --[[
+  - Define valores para o tamanho em escala do sprite.
+  -
+  - @param {number} scaleX Escala horizontal do sprite.
+  - @param {number} scaleY Escala vertical do sprite.
+  --]]
+  function def:setScale(scaleX, scaleY)
+    self.scaleX = scaleX or 0
+    self.scaleY = scaleY or 0
+  end
+
+  --[[
+  - Determina se o sprite está dentro da tela.
+  -
+  - @return {boolean}
+  --]]
+  function def:isInsideScreen()
+    return Surface.isInsideScreen(self.offsetX, self.offsetY, self.width * math.abs(self.scaleX), self.height * math.abs(self.scaleY))
   end
 
   --[[
@@ -544,6 +624,12 @@ function Sprite.new(width, height)
   - @param {number} delta Variação de tempo.
   --]]
   function def:update(delta)
+  end
+
+  --[[
+  - @event
+  --]]
+  function def:animationEnded()
   end
 
   def:__init__()
