@@ -78,8 +78,8 @@ function Group.new()
       -- Executar evento de "update" e desenhar o sprite na tela...
       if not value:isDestroyed() then
         value:setDelta(delta)
-        value:update(delta)
         value:draw(delta)
+        value:update(delta)
 
       -- ...ou marcá-lo na lista de exclusão, caso tenha sido removido:
       else
