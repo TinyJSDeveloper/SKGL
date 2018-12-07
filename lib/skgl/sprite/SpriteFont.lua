@@ -95,8 +95,8 @@ function SpriteFont.new(width, height)
         -- Desenhar o caractere:
         self:drawChar(
           char,
-          x + (self.width * (col - 1)),
-          y + (self.height * (row - 1))
+          x + ((self.width  * math.abs(self.scaleX)) * (col - 1)),
+          y + ((self.height * math.abs(self.scaleY)) * (row - 1))
         )
 
         -- Quebrar uma linha ao encontrar o "\n":
