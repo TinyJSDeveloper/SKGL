@@ -134,6 +134,14 @@ function TileMap.new(width, height)
 
   --[[
   - @override
+  - @return {boolean} Determina se o sprite está dentro da tela.
+  --]]
+  function def:isInsideScreen()
+    return Surface.isInsideScreen(self.offsetX, self.offsetY, self.bounds.width, self.bounds.height)
+  end
+
+  --[[
+  - @override
   - Desenha o tileset na tela.
   -
   - @param {number} delta Variação de tempo.
@@ -150,25 +158,62 @@ function TileMap.new(width, height)
     self:applySpeed()
 
     -- Desenhar o tileset:
-    if self.visible == true and self.opacity > 0.0 then
+    if self.visible == true and self.opacity > 0.0 and self:isInsideScreen() == true then
       if self.tilemap ~= nil then
 
         -- Desenhar um retângulo colorido (cor de fundo):
         self:drawColor(self.color, self.offsetX, self.offsetY, (self._maxCols * self.width), (self._maxRows * self.height))
 
-        -- Percorrer linhas e colunas...
-				for row in pairs(self.tilemap) do
-					for col in pairs(self.tilemap[row]) do
+        -- Obter valores máximos de linhas e colunas possíveis na tela:
+        local maxRowsOnScreen = math.ceil(Display.getHeight() / self.height)
+        local maxColsOnScreen = math.ceil(Display.getWidth() / self.width)
 
-            -- Desenhar na tela:
-						self:drawTile(
-              self.tilemap[row][col],
-							self.offsetX + ((col - 1) * self.width),
-							self.offsetY + ((row - 1) * self.height)
-						)
+        -- Índices indicativos (qual índice do mapa começar e onde terminar):
+        local rowStart = 0
+        local rowEnd = self:getMaxRows()
+        local colStart = 0
+        local colEnd = self:getMaxCols()
+
+        -- Obter a primeira linha de exibição:
+        if self.offsetY < 0 then
+          rowStart = math.abs(math.floor(self.offsetY / self.height))
+        end
+
+        -- Obter a primeira coluna de exibição:
+        if self.offsetX < 0 then
+          colStart = math.abs(math.floor(self.offsetX / self.width))
+        end
+
+        -- Limitar valor máximo de linhas para o que pode ser exibido na tela:
+        if rowEnd > maxRowsOnScreen then
+          rowEnd = maxRowsOnScreen
+        end
+
+        -- Limitar valor máximo de colunas para o que pode ser exibido na tela:
+        if colEnd > maxColsOnScreen then
+          colEnd = maxColsOnScreen
+        end
+
+        -- Percorrer linhas...
+        for row = rowStart, (rowEnd + rowStart) do
+          if self.tilemap[row] ~= nil then
+
+            -- Percorrer colunas...
+            for col = colStart, (colEnd + colStart) do
+              if self.tilemap[row][col] ~= nil then
+
+                -- Desenhar na tela:
+                self:drawTile(
+                  self.tilemap[row][col],
+    							self.offsetX + ((col - 1) * self.width),
+    							self.offsetY + ((row - 1) * self.height)
+    						)
+
+              end
+            end
 
           end
-				end
+        end
 
       end
     end
