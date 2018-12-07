@@ -16,8 +16,10 @@ end
 
 --[[
 - @class Array
+-
+- @param {any[]} items Lista inicial de itens (opcional).
 --]]
-function Array.new()
+function Array.new(items)
   --[[@meta]]
   local def = {
     class = Array
@@ -32,6 +34,11 @@ function Array.new()
 
     -- @private Total de itens.
     self._length = 0
+
+    -- Pré-adiciona uma lista de itens na Array (opcional):
+    if items ~= nil then
+      self:addItems(items)
+    end
   end
 
   --[[
@@ -57,6 +64,19 @@ function Array.new()
   --]]
   function def:get(index)
     return self._items[(index + 1)]
+  end
+
+  --[[
+  - Adiciona ou substitui o valor de um item com um índice específico.
+  -
+  - @param {number} index Índice (indexação baseada em 0).
+  - @param {any} item Item.
+  -
+  - @return {number} Retorna de volta o item adicionado ou substituído.
+  --]]
+  function def:set(index, item)
+    self._items[(index + 1)] = item
+    return item
   end
 
   --[[
@@ -117,11 +137,13 @@ function Array.new()
   -
   - @param {any} item Item.
   -
-  - @return {boolean}
+  - @return {any} Retorna de volta o item inserido.
   --]]
   function def:push(item)
     table.insert(self._items, item)
     self._length = (self._length + 1)
+
+    return item
   end
 
   --[[
@@ -131,10 +153,12 @@ function Array.new()
   ]]
   function def:pop()
     -- Obter último item inserido:
-    local item = self.get(self._length - 1)
+    local item = self:get(self._length - 1)
 
-    -- Remover e retornar o item:
-    table.remove(a)
+    -- Remover o item e subtrair a contagem total:
+    table.remove(self._items, self._length)
+    self._length = (self._length - 1)
+
     return item
   end
 
@@ -219,6 +243,14 @@ function Array.new()
 
     self._items = filter
     self._length = length
+  end
+
+  --[[
+  - Remove todos os itens desta Array.
+  --]]
+  function def:clear()
+    self._items = {}
+    self._length = 0
   end
 
   --[[
