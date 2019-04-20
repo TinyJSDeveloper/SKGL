@@ -31,6 +31,19 @@ M.static.button = {
   SQUARE   = M.state.IDLE  -- Botão "*Quadrado*."
 }
 
+--- Estados do(s) analógico(s). O PSP só possui o analógico esquerdo.
+M.static.analog = {
+    left = {
+      x = 0,
+      y = 0
+    },
+
+    right = {
+      x = 0,
+      y = 0
+    }
+}
+
 ----
 -- Construtor da classe.
 -- @function new
@@ -68,6 +81,14 @@ function M:getBinding(name)
 end
 
 ----
+-- Obtém o estado do(s) analógico(s).
+-- @param name (***string***) Nome do analógico (@see skgl.Input.analog).
+-- @return O estado do analógico (em valores X e Y).
+function M:getAnalog(name)
+  return M.analog[name]
+end
+
+----
 -- Informa se uma tecla está ou não inativa.
 -- @param name (***string***) Nome da tecla (@see skgl.Input.binding).
 -- @return O valor descrito.
@@ -97,6 +118,14 @@ end
 -- @return O valor descrito.
 function M:released(name)
 	return (self:getBinding(name) == M.state.RELEASED)
+end
+
+----
+-- Informa se uma tecla está pressionada e/ou mantida.
+-- @param name (***string***) Nome da tecla (@see skgl.Input.binding).
+-- @return O valor descrito.
+function M:pushed(name)
+  return (self:getBinding(name) == M.state.PRESSED) or (self:getBinding(name) == M.state.HELD)
 end
 
 ----
@@ -130,6 +159,9 @@ end
 -- Lê e atualiza os dados de estado de todas as teclas.
 function M.static:read()
   buttons.read()
+
+  M.analog.left.x   = buttons.analogx
+  M.analog.left.y   = buttons.analogy
 
 	M.button.SELECT   = M:nextState(M.button.SELECT,   buttons.held.select)
 	M.button.START    = M:nextState(M.button.START,    buttons.held.start)

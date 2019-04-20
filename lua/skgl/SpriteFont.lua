@@ -3,12 +3,15 @@
 -- escrever texto em qualquer lugar, dado um mapa de caracteres apropriado.
 --
 -- Devido à limitações do *ONELua*, esta fonte não pode ser rotacionada,
--- escalada ou invertida. Para isso, utilize a `skgl.MultiSpriteFont`, uma
--- variante de fonte capaz de realizar estas funções.
+-- escalada ou invertida. Para isso, habilite o modo *Multi Sprite*, um
+-- modo especial deste objeto capaz de realizar estas funções, sob o custo do
+-- uso de imagens separadas ao invés de uma *spritesheet*.
 --
 -- O texto é sempre exibido da esquerda para a direita. As fontes funcionam de
 -- maneira independente: para escrever na tela, basta usar, em qualquer lugar,
 -- o método `skgl.SpriteFont:print()`.
+--
+-- Extends `skgl.Sprite`
 --
 -- Dependencies: `skgl.Sprite`
 -- @classmod skgl.SpriteFont
@@ -29,6 +32,12 @@ function M:initialize(width, height)
 
   --- Mapa de caracteres.
   self.charmap = nil
+
+  --- Espaçamento entre os caracteres.
+  self.charSpacing = 0
+
+  --- Espaçamento entre as linhas.
+  self.lineHeight = 0
 end
 
 ----
@@ -45,8 +54,7 @@ function M:createCharmap(charset)
     -- Percorrer e mapear todos os caracteres especificados no charset:
     for i = 1, #charset do
       local char = charset:sub(i, i)
-      charmap[char] = (i - 1)
-
+      charmap[char] = {index = (i - 1)}
     end
 
   -- Criar mapa de caracteres normalmente...
@@ -83,7 +91,7 @@ end
 function M:drawChar(char, x, y)
   if self.charmap[char] ~= nil then
     local charData = self.charmap[char]
-    self:drawFrame(charData.index, x, y)
+    self:drawFrame(charData.index, x, y, true)
   end
 end
 
@@ -103,15 +111,35 @@ function M:print(x, y, text)
   -- Desenhar o texto:
   if self.visible == true and self.opacity > 0.0 then
 
+    -- Salvar o tamanho original dos caracteres...
+    local originalWidth  = self.width
+    local originalHeight = self.height
+
+    -- ...e alterá-los com base na escala. Eles serão restaurados mais tarde:
+    self.width  = math.abs(self.width  * self.scaleX)
+    self.height = math.abs(self.height * self.scaleY)
+
     -- Percorrer todos os caracteres do texto para desenhá-los:
     for i = 1, #text do
       local char = text:sub(i, i)
+      local charSpacing = self.charSpacing
+      local lineHeight = self.lineHeight
+
+      -- Ajustar o espaçamento entre as linhas (ignorando a primeira):
+      if row == 0 then
+        lineHeight = 0
+      end
+
+      -- Ajustar o espaçamento entre os caracteres (ignorando o primeiro):
+      if col == 0 then
+        charSpacing = 0
+      end
 
       -- Desenhar o caractere:
       self:drawChar(
         char,
-        x + ((self.width  * math.abs(self.scaleX)) * (col - 1)),
-        y + ((self.height * math.abs(self.scaleY)) * (row - 1))
+        x + ((  self.width  + charSpacing) * (col - 1)),
+        y + ((  self.height + lineHeight) * (row - 1))
       )
 
       -- Quebrar uma linha ao encontrar o "\n":
@@ -123,6 +151,10 @@ function M:print(x, y, text)
       -- Ir para a próxima coluna:
       col = (col + 1)
     end
+
+    -- Restaurar o tamanho original dos caracteres:
+    self.width = originalWidth
+    self.height = originalHeight
 
   end
 end

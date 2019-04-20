@@ -2,6 +2,8 @@
 -- Gerenciador de recursos; é usado para pré-carregar vários recursos de uma
 -- vez, notificando quando todos estiverem prontos.
 --
+-- Extends `skgl.Array`
+--
 -- Dependencies: `skgl.Array`
 -- @classmod skgl.AssetManager
 local Array = require("skgl.Array")
@@ -61,7 +63,7 @@ end
 -- @param last (***number***) Último índice enumerado após a ID.
 -- @param zeroFill (***number***) Preenchimento de zeros.
 -- @param event (***function***) Uso:
--- `function(nextId, id, index) ... return <any> end`
+-- `function(id, num, index) ... return <any> end`
 function M:preloadSequence(id, first, last, zeroFill, event)
   -- Lista de recursos:
   local items = {}
@@ -71,11 +73,12 @@ function M:preloadSequence(id, first, last, zeroFill, event)
 
   -- Iterar sobre os índices, enumerando a ID de cada recurso...
   for i = first, last do
-    local nextId = id..string.format(format, i)
+    local num = string.format(format, i)
+    local nextId = id..num
 
     -- O recurso final depende do retorno da função de evento, na qual
     -- receberá a ID enumerada deste recurso e deverá retornar algum valor:
-    items[nextId] = event(nextId, id, i)
+    items[nextId] = event(id, num, i)
 
     -- Pré-carregar o recurso enumerado:
     self:preload(nextId, items[nextId])

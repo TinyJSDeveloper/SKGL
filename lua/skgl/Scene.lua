@@ -11,11 +11,13 @@
 -- funcionalidades de posicionamento relativo e *parallax* dos grupos, é
 -- possível criar um *side scroller* com muita facilidade.
 --
--- Dependencies: `skgl.Array`, `skgl.Display`, `skgl.Surface`
+-- Extends `skgl.Array`
+--
+-- Dependencies: `skgl.Array`, `skgl.Display`, `skgl.Graphics`
 -- @classmod skgl.Scene
 local Array = require("skgl.Array")
 local Display = require("skgl.Display")
-local Surface = require("skgl.Surface")
+local Graphics = require("skgl.Graphics")
 local M = Array:subclass("skgl.Scene")
 
 ----
@@ -50,6 +52,78 @@ function M:initialize(width, height)
 
   --- Transparência (de 0.0 a 1.0). Vale apenas para a cor de fundo.
   self.opacity = 1.0
+
+  -- @private Cache contendo todos os objetos presentes na cena, em todos os grupos.
+  self._itemCache = {}
+
+  -- @private Cache contendo todos os grupos que compõem esta cena.
+  self._groupCache = {}
+end
+
+----
+-- Obtém uma Array contendo todos os objetos de uma determinada classe
+-- presentes na cena, em todos os grupos.
+-- @param className (***string***) Nome da classe.
+-- @return O valor descrito.
+function M:classItems(className)
+  if self._itemCache[className] ~= nil then
+    return self._itemCache[className]
+  else
+    return Array:new()
+  end
+end
+
+----
+-- Adiciona um item no cache geral de todos os objetos presentes na cena.
+-- @param item (***any***) Item.
+-- @return O item inserido.
+function M:cacheItem(item)
+  -- Nome de classe padrão:
+  local className = "Object"
+
+  -- O cache de objetos é catalogado pelo nome das classes:
+  if item.class ~= nil and item.class.name ~= nil then
+    className = item.class.name
+  end
+
+  -- Catálogo de objetos da classe:
+  local classList = self._itemCache[className]
+
+  -- Quando o catálogo não existe, ele é criado automaticamente:
+  if classList == nil then
+    classList = Array:new()
+    self._itemCache[className] = classList
+  end
+
+  -- Adicionar o item no cache:
+  return classList:push(item)
+end
+
+----
+-- Adiciona um grupo no cache geral de todos os grupos que compõem esta cena.
+-- @param group (`skgl.Group`) Grupo a ser cacheado (deve conter uma *id*).
+-- @return O grupo inserido.
+function M:cacheGroup(group)
+  if group.id ~= nil and self._groupCache[group.id] == nil then
+    self._groupCache[group.id] = group
+  end
+
+  return self._groupCache[group.id]
+end
+
+----
+-- Obtém um grupo desta cena, através de sua ID.
+-- @param id (***string***) ID do grupo.
+-- @return O valor descrito; ou nada, caso não exista.
+function M:getGroup(id)
+  return self._groupCache[id]
+end
+
+----
+-- Remove todos os objetos catalogados no cache da cena.
+function M:clearCache()
+  self._itemCache = {}
+  self._groupCache = {}
 end
 
 ----
@@ -61,7 +135,19 @@ function M:render(delta)
     self:drawBackground(self.color, self.opacity)
   end
 
-  -- Percorrer todos os sprites...
+  -- Limpar o cache de objetos:
+  self:clearCache()
+
+  -- Cachear todos os grupos e seus objetos...
+  self:foreach(function(key, value, index)
+    self:cacheGroup(value)
+
+    value:foreach(function(key, value, index)
+      self:cacheItem(value)
+    end)
+  end)
+
+  -- Percorrer todos os grupos...
   self:foreach(function(key, value, index)
     value.parent = self
 
@@ -82,7 +168,7 @@ end
 -- @param opacity (***number***) Transparência (de 0.0 a 1.0).
 function M:drawBackground(color, opacity)
   if self.color ~= nil then
-    Surface.drawBackground(color, opacity)
+    Graphics.screen.fill(color, opacity)
   end
 end
 

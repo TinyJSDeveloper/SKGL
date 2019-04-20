@@ -7,6 +7,8 @@
 -- Sua performance é melhor e mais rápida que o `skgl.TileMap`, mas se repete
 -- até preencher toda a tela.
 --
+-- Extends `skgl.TileMap`
+--
 -- Dependencies: `skgl.TileMap`
 -- @classmod skgl.GBATileMap
 local TileMap = require("skgl.TileMap")
@@ -18,8 +20,12 @@ local M = TileMap:subclass("skgl.GBATileMap")
 -- @param tilemap (***{{number}}***) Mapa de *tiles*.
 -- @param width (***number***) Largura dos *tiles*.
 -- @param height (***number***) Altura dos *tiles*.
+-- @param autoMapArea (***boolean***) Quando ativado, obtém os valores máximos de
+-- linhas e colunas automaticamente. O valor padrão é "`true`".
+-- @param maxRows (***number***) Valor máximo de linhas.
+-- @param maxCols (***number***) Valor máximo de colunas.
 -- @function new
-function M:initialize(image, tilemap, width, height)
+function M:initialize(image, tilemap, width, height, autoMapArea, maxRows, maxCols)
   -- Inicializar superclasse:
   TileMap.initialize(self, width, height)
 
@@ -31,7 +37,7 @@ function M:initialize(image, tilemap, width, height)
 
   -- Definir imagem e mapa de tiles usado por esta instância. Estas
   -- propriedades não poderão ser alteradas após a criação deste objeto:
-  self:setTilemap(tilemap, false, width, height)
+  self:setTilemap(tilemap, autoMapArea, maxRows, maxCols)
 
   -- Tentar criar um objeto de mapa do GBA Graphics:
   self:adjustGBAMap()

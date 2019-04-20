@@ -10,11 +10,13 @@
 -- assumir diversos tamanhos diferentes sem necessariamente preencher toda a
 -- tela. Seu uso também é mais simples e direto, viabilizando seu uso.
 --
--- Dependencies: `skgl.Display`, `skgl.Sprite`, `skgl.Surface`
+-- Extends `skgl.Sprite`
+--
+-- Dependencies: `skgl.Display`, `skgl.Graphics`, `skgl.Sprite`
 -- @classmod skgl.TileMap
 local Display = require("skgl.Display")
 local Sprite = require("skgl.Sprite")
-local Surface = require("skgl.Surface")
+local Graphics = require("skgl.Graphics")
 local M = Sprite:subclass("skgl.TileMap")
 
 ----
@@ -25,8 +27,11 @@ function M:initialize(width, height)
   -- Inicializar superclasse:
   Sprite.initialize(self, width, height)
 
-  --- Mapa de tiles.
+  --- Mapa de *tiles*.
   self.tilemap = nil
+
+  --- Máscara de colisão (use 0 para áreas livres e 1 para obstáculos).
+  self.collisionData = nil
 
   -- @private Valor máximo de linhas.
   self._maxRows = 0
@@ -131,7 +136,46 @@ end
 -- @param x (***number***) Posição X de desenho.
 -- @param y (***number***) Posição Y de desenho.
 function M:drawTile(tile, x, y)
-  self:drawFrame(tile, x, y)
+  self:drawFrame(tile, x, y, true)
+end
+
+----
+-- Procura pela informação de um *tile* que esteja na coordenada especificada.
+-- Diferente das outras funções, esta requer o mapa de *tiles* como parâmetro.
+-- @param x (***number***) Posição X.
+-- @param y (***number***) Posição Y.
+-- @param tilemap (***{{number}}***) Mapa de *tiles*.
+-- @return Um objeto contendo a ID do *tile*, além de outras informações
+-- adicionais; ou nada, caso não exista.
+function M:getTileInfo(x, y, tilemap)
+  if tilemap ~= nil then
+    -- Obter posições X e Y relativas ao mapa:
+    local mapX = x - self.x
+    local mapY = y - self.y
+
+    -- Obter possível ID do tile:
+    local tileX = (math.floor(mapX / math.floor(self.width  * self.scaleX) )) + 1
+    local tileY = (math.floor(mapY / math.floor(self.height * self.scaleY) )) + 1
+
+    -- Se encontrado no mapa de tiles, as informações do tile serão retornadas:
+    if tilemap[tileY] ~= nil and tilemap[tileY][tileX] ~= nil then
+      return {
+		    id      = tilemap[tileY][tileX],
+        tileX   = tileX,
+        tileY   = tileY,
+        x       = (tileX - 1),
+        y       = (tileY - 1),
+        offsetX = self.offsetX + ((tileX - 1) * math.floor(self.width  * self.scaleX)),
+        offsetY = self.offsetY + ((tileY - 1) * math.floor(self.height * self.scaleY)),
+        width   = math.floor(self.width  * self.scaleX),
+        height  = math.floor(self.height * self.scaleY)
+      }
+    else
+      return nil
+    end
+  end
+
+  return nil
 end
 
 ----
@@ -139,30 +183,37 @@ end
 -- @param x (***number***) Posição X.
 -- @param y (***number***) Posição Y.
 -- @return A ID do *tile*; ou -1, caso não exista.
-function M:getTileAt(x, y)
-  if self.tilemap ~= nil then
-    -- Obter posições X e Y relativas ao mapa:
-    local mapX = (x - self.offsetX)
-    local mapY = (y - self.offsetY)
+function M:checkTile(x, y)
+  local tileInfo = self:getTileInfo(x, y, self.tilemap)
 
-    -- Obter possível ID do tile:
-    local tileX = (math.floor(mapX / self.width)) + 1
-    local tileY = (math.floor(mapY / self.height)) + 1
-
-    -- Se encontrado no mapa de tiles, a ID do tile será retornada:
-    if self.tilemap[tileY] ~= nil and self.tilemap[tileY][tileX] ~= nil then
-      return self.tilemap[tileY][tileX]
-    end
+  if tileInfo ~= nil then
+    return tileInfo.id
+  else
+    return -1
   end
+end
 
-  return -1
+----
+-- Verifica se há colisão na coordenada especificada, com base na máscara de
+-- colisão do mapa de *tiles*.
+-- @param x (***number***) Posição X.
+-- @param y (***number***) Posição Y.
+-- @return O resultado da colisão.
+function M:hitTest(x, y)
+  local tileInfo = self:getTileInfo(x, y, self.collisionData)
+
+  if tileInfo ~= nil and tileInfo.id >= 1 then
+    return true
+  else
+    return false
+  end
 end
 
 ----
 -- (***@Override***) Determina se o *sprite* está ou não dentro da tela.
 -- @return O valor descrito.
 function M:isInsideScreen()
-  return Surface.isInsideScreen(self.offsetX, self.offsetY, (self.width * self._maxCols), (self.height * self._maxRows))
+  return Graphics.isInsideScreen(self.offsetX, self.offsetY, (self.width * self._maxCols), (self.height * self._maxRows))
 end
 
 ----
@@ -216,6 +267,14 @@ function M:draw(delta)
         colEnd = maxColsOnScreen
       end
 
+      -- Salvar o tamanho original dos tiles...
+      local originalWidth  = self.width
+      local originalHeight = self.height
+
+      -- ...e alterá-los com base na escala. Eles serão restaurados mais tarde:
+      self.width  = math.abs(self.width  * self.scaleX)
+      self.height = math.abs(self.height * self.scaleY)
+
       -- Percorrer linhas...
       for row = rowStart, (rowEnd + rowStart) do
         if self.tilemap[row] ~= nil then
@@ -236,6 +295,10 @@ function M:draw(delta)
 
         end
       end
+
+      -- Restaurar o tamanho original dos tiles:
+      self.width = originalWidth
+      self.height = originalHeight
 
     end
   end

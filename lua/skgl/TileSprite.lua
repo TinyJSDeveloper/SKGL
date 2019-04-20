@@ -3,11 +3,13 @@
 -- toda a sua área com gráficos que se repetem, tornando-o especialmente útil
 -- para criar planos de fundo (*backgrounds*).
 --
--- Dependencies: `skgl.Display`, `skgl.Sprite`, `skgl.Surface`
+-- Extends `skgl.Sprite`
+--
+-- Dependencies: `skgl.Display`, `skgl.Graphics`, `skgl.Sprite`
 -- @classmod skgl.TileSprite
 local Display = require("skgl.Display")
 local Sprite = require("skgl.Sprite")
-local Surface = require("skgl.Surface")
+local Graphics = require("skgl.Graphics")
 local M = Sprite:subclass("skgl.TileSprite")
 
 ----
@@ -58,7 +60,8 @@ function M:drawFrameRow(width, height, tileWidth, tileHeight)
       self:drawFrame(
         self:getFrame(self.frame),
         self.offsetX + width,
-        self.offsetY + height
+        self.offsetY + height,
+        true
       )
 
       width = (width + self.width)
@@ -69,7 +72,8 @@ function M:drawFrameRow(width, height, tileWidth, tileHeight)
       self:drawFrame(
         self:getFrame(self.frame),
         self.offsetX + width,
-        self.offsetY + height
+        self.offsetY + height,
+        true
       )
       break
     end
@@ -142,12 +146,12 @@ end
 -- (***@Override***) Determina se o *sprite* está ou não dentro da tela.
 -- @return O valor descrito.
 function M:isInsideScreen()
-  return Surface.isInsideScreen(self.offsetX, self.offsetY, self.mapWidth, self.mapHeight)
+  return Graphics.isInsideScreen(self.offsetX, self.offsetY, self.mapWidth, self.mapHeight)
 end
 
 ----
 -- (***@Override***) Desenha o *sprite* na tela.
--- @param delta Variação de tempo (*delta time*).
+-- @param delta (***number***) Variação de tempo (*delta time*).
 function M:draw(delta)
   -- Ajustar/sincronizar o offset e a caixa de colisão deste sprite:
   self:adjustOffset()
@@ -160,22 +164,10 @@ function M:draw(delta)
   -- Aplicar as velocidades horizontal (posição X) e vertical (posição Y):
   self:applySpeed()
 
-  -- Desenhar o sprite:
+  -- Desenhar o sprite (como uma grade contínua ao invés de apenas um frame):
   if self.visible == true and self.opacity > 0.0 and self:isInsideScreen() == true then
-
-    -- Desenhar um retângulo colorido (cor de fundo):
-    self:drawColor(self.color, self.offsetX, self.offsetY, self.mapWidth, self.mapHeight)
-
-    if self.image ~= nil then
-      -- Criar um atlas de imagens, caso não exista:
-      if self.imageAtlas == nil then
-        self.imageAtlas = self:createImageAtlas()
-      end
-
-      -- Desenhar colunas:
-      self:drawFrameColumns()
-    end
-
+    self:drawColor(self.color, self.offsetX, self.offsetY, self.width, self.height)
+    self:drawFrameColumns()
   end
 
   -- Requisitar o próximo frame:

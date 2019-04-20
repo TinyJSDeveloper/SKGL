@@ -61,8 +61,14 @@ end
 -- Ajusta o *offset* da caixa de colisão, sendo relativo a um *sprite*.
 -- @param sprite (`skgl.Sprite`) Sprite.
 function M:adjustOffset(sprite)
+  --[[
+  -- isto estava funcionando normalmente. Se acontecer algo de errado com o
+  -- outro código, apague-o e descomente este de volta.
   self.offsetX = (self.x + sprite.offsetX) - sprite.paddingX
   self.offsetY = (self.y + sprite.offsetY) - sprite.paddingY
+  --]]
+  self.offsetX = ((self.x + sprite.offsetX) - sprite.originX) - sprite.paddingX
+  self.offsetY = ((self.y + sprite.offsetY) - sprite.originY) - sprite.paddingY
 end
 
 return M

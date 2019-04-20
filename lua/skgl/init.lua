@@ -25,8 +25,8 @@ M.Array = require("skgl.Array")
 M.Clock = require("skgl.Clock")
 M.Color = require("skgl.Color")
 M.Display = require("skgl.Display")
+M.Graphics = require("skgl.Graphics")
 M.Input = require("skgl.Input")
-M.Surface = require("skgl.Surface")
 
 function M:import(t)
   for key, value in pairs(self) do

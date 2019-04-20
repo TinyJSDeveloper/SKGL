@@ -3,18 +3,19 @@
 -- compor personagens e outros elementos interativos do jogo.
 --
 -- Devido à limitações do *ONELua*, este objeto não pode ser rotacionado,
--- escalado ou invertido. Para isso, utilize o `skgl.MultiSprite`, uma
--- variante do *sprite* capaz de realizar estas funções.
+-- escalado ou invertido. Para isso, habilite o modo *Multi Sprite*, um
+-- modo especial deste objeto capaz de realizar estas funções, sob o custo do
+-- uso de imagens separadas ao invés de uma *spritesheet*.
 --
 -- O *sprite* é a base de todos os demais objetos gráficos da biblioteca,
 -- praticamente assumindo a posição de *god class*. Portanto, a referência
 -- sobre o funcionamento dos demais objetos gráficos pode ser vista aqui.
 --
--- Dependencies: `skgl.BoundingBox`, `skgl.Surface`
+-- Dependencies: `skgl.BoundingBox`, `skgl.Graphics`
 -- @classmod skgl.Sprite
 local class = require("middleclass")
 local BoundingBox = require("skgl.BoundingBox")
-local Surface = require("skgl.Surface")
+local Graphics = require("skgl.Graphics")
 local M = class("skgl.Sprite")
 
 ----
@@ -23,6 +24,9 @@ local M = class("skgl.Sprite")
 -- @param height (***number***) Altura do *sprite*.
 -- @function new
 function M:initialize(width, height)
+  --- ID do sprite.   @todo Ainda não está funcionando e eu pessoalmente não sei se mexo na ordem do "new()" ou não.
+  self.id = id or nil
+
   --- Parente do *sprite*. O posicionamento do *sprite* é relativo ao parente.
   self.parent = nil
 
@@ -120,6 +124,9 @@ function M:initialize(width, height)
   --- Indica se o modo *Multi Sprite* está ativado ou não.
   self._multiSpriteEnabled = false
 
+  -- @private Indica se o sprite já foi criado.
+  self._created = false
+
   -- @private Indica se o sprite foi destruído.
   self._destroyed = false
 
@@ -130,8 +137,10 @@ end
 ---- Obtém a largura da imagem.
 -- @return O valor descrito.
 function M:getImageWidth()
-  if self.image ~= nil then
-    return Surface.getImageWidth(self.image)
+  if self._multiSpriteEnabled == true and self.images[self:getFrame(self.frame) + 1] ~= nil then
+    return Graphics.getImageWidth(self.images[self:getFrame(self.frame) + 1])
+  elseif self.image ~= nil then
+    return Graphics.getImageWidth(self.image)
   else
     return 0
   end
@@ -140,8 +149,10 @@ end
 ---- Obtém a altura da imagem.
 -- @return O valor descrito.
 function M:getImageHeight()
-  if self.image ~= nil then
-    return Surface.getImageHeight(self.image)
+  if self._multiSpriteEnabled == true and self.images[self:getFrame(self.frame) + 1] ~= nil then
+    return Graphics.getImageHeight(self.images[self:getFrame(self.frame) + 1])
+  elseif self.image ~= nil then
+    return Graphics.getImageHeight(self.image)
   else
     return 0
   end
@@ -177,6 +188,12 @@ function M:createImageAtlas()
   end
 
   return imageAtlas
+end
+
+---- Indica se o *sprite* foi criado.
+-- @return O valor descrito.
+function M:isCreated()
+  return self._created
 end
 
 ---- Indica se o *sprite* foi destruído.
@@ -263,7 +280,7 @@ function M:drawColor(color, x, y, width, height)
   if self.color ~= nil then
 
     -- Desenhar um retângulo em volta do sprite:
-    Surface.drawFillRect(
+    Graphics.rectangle.fill(
       x,
       y,
       width,
@@ -280,21 +297,23 @@ end
 -- @param frame (***number***) *Frame* do sprite.
 -- @param x (***number***) Posição X de desenho.
 -- @param y (***number***) Posição Y de desenho.
-function M:drawFrame(frame, x, y)
+-- @param autoCenterOrigins (***boolean***) Quando ativado, centraliza as posições de origem da imagem automaticamente. O valor padrão é "`true`".
+function M:drawFrame(frame, x, y, autoCenterOrigins)
   -- Desenhar frame com o modo Multi Sprite ativado...
   if self._multiSpriteEnabled == true and self.images[(frame + 1)] ~= nil then
 
     -- Desenhar o frame do sprite:
-    Surface.drawImageExtended(
+    Graphics.image.drawExtended(
       self.images[(frame + 1)],
-      x + self.originX,
-      y + self.originY,
-      self.originX,
-      self.originY,
+      x + (self.width  / 2),
+      y + (self.height / 2),
       self.scaleX,
       self.scaleY,
       self.rotation,
-      self.opacity
+      self.opacity,
+      autoCenterOrigins,
+      self.originX,
+      self.originY
     )
 
   -- Desenhar frame normalmente...
@@ -307,7 +326,7 @@ function M:drawFrame(frame, x, y)
 
     -- Desenhar o frame do sprite:
     if self.imageAtlas[frame] ~= nil then
-      Surface.drawImagePartExtended(
+      Graphics.image.partExtended(
         self.image,
         x,
         y,
@@ -325,9 +344,10 @@ end
 ----
 -- Ajusta o índice do *frame* atual, caso necessário.
 function M:adjustFrame()
-  if self.frames[self.frame] == nil then
+  if self.frameDelay - 0.1 >= math.abs(self.frameDelayMax - self.frameDelayTick) and self.frames[self.frame + 1] == nil then
+    self:onAnimationEnd()
+  elseif self.frames[self.frame] == nil then
     self.frame = 1
-    self:animationEnded()
   end
 end
 
@@ -423,7 +443,7 @@ function M:intersect(colliders)
 
   -- Percorrer todos os sprites contidos na lista...
   for key, value in pairs(colliders) do
-    if self.bounds ~= nil and value.bounds ~= nil and value ~= self then
+    if self.bounds ~= nil and value.bounds ~= nil and self:isDestroyed() == false and value:isDestroyed() == false and value ~= self then
 
       -- Ajustar/sincronizar offsets e caixas de colisão do sprite colisor:
       value:adjustOffset()
@@ -552,6 +572,45 @@ function M:getMoveY(value)
 end
 
 ----
+-- Obtém o valor resultante ao movimentar o *sprite* em um ângulo especificado,
+-- sob um valor relativo. Ao contrário da `skgl.Sprite:moveToAngle()`, esta
+-- apenas retorna o valor calculado, ou seja, não altera a posição do *sprite*.
+-- @param value (***number***) Valor relativo ao movimento.
+-- @param angle (***number***) Ângulo de movimento (de 0 a 360 graus).
+-- @return O valor descrito, em uma tabela com as propriedades *x* e *y*.
+function M:getMoveToAngle(value, angle)
+	return {
+		x = self:getMoveX(value * math.cos(angle * (math.pi / 180))),
+		y = self:getMoveY(value * math.sin(angle * (math.pi / 180)))
+	}
+end
+
+----
+-- Obtém o valor resultante ao rotacionar o *sprite*, fazendo-o olhar para um
+-- ponto especificado. Ao contrário da `skgl.Sprite:rotateTo()`, esta apenas
+-- retorna o valor calculado, ou seja, não altera a rotação do *sprite*.
+-- @param x (***number***) Posição X do ponto.
+-- @param x (***number***) Posição Y do ponto.
+-- @return O valor descrito.
+function M:getRotateTo(x, y)
+  return (math.atan2(y - self.y, x - self.x)) * (180 / math.pi)
+end
+
+----
+-- Obtém o valor resultante ao movimentar o *sprite* para um ponto
+-- especificado, em um valor relativo. Ao contrário da `skgl.Sprite:moveTo()`,
+-- esta apenas retorna o valor calculado, ou seja, não altera a posição do
+-- *sprite*.
+-- Movimenta o *sprite* para um ponto especificado, em um valor relativo.
+-- @param x (***number***) Posição X do ponto.
+-- @param x (***number***) Posição Y do ponto.
+-- @param value (***number***) Valor relativo ao movimento.
+-- @return O valor descrito, em uma tabela com as propriedades *x* e *y*.
+function M:getMoveTo(x, y, value)
+	return self:getMoveToAngle(value, self:getRotateTo(x, y))
+end
+
+----
 -- Movimenta a posição X do *sprite* em um valor relativo.
 -- @param value (***number***) Valor relativo ao movimento.
 function M:moveX(value)
@@ -563,6 +622,32 @@ end
 -- @param value (***number***) Valor relativo ao movimento.
 function M:moveY(value)
   self.y = (self.y + (value * self:getDelta()))
+end
+
+----
+-- Movimenta o *sprite* em um ângulo especificado, sob um valor relativo.
+-- @param value (***number***) Valor relativo ao movimento.
+-- @param angle (***number***) Ângulo de movimento (de 0 a 360 graus).
+function M:moveToAngle(value, angle)
+	self:moveX(value * math.cos(angle * (math.pi / 180)))
+	self:moveY(value * math.sin(angle * (math.pi / 180)))
+end
+
+----
+-- Rotaciona o *sprite*, fazendo-o olhar para um ponto especificado.
+-- @param x (***number***) Posição X do ponto.
+-- @param x (***number***) Posição Y do ponto.
+function M:rotateTo(x, y)
+	self.rotation = (math.atan2(y - self.y, x - self.x)) * (180 / math.pi)
+end
+
+----
+-- Movimenta o *sprite* para um ponto especificado, em um valor relativo.
+-- @param x (***number***) Posição X do ponto.
+-- @param x (***number***) Posição Y do ponto.
+-- @param value (***number***) Valor relativo ao movimento.
+function M:moveTo(x, y, value)
+	self:moveToAngle(value, self:getRotateTo(x, y))
 end
 
 ----
@@ -625,7 +710,13 @@ end
 -- Determina se o *sprite* está dentro da tela ou não.
 -- @return O valor descrito.
 function M:isInsideScreen()
-  return Surface.isInsideScreen(self.offsetX, self.offsetY, self.width * math.abs(self.scaleX), self.height * math.abs(self.scaleY))
+  return Graphics.isInsideScreen(self.offsetX, self.offsetY, self.width * math.abs(self.scaleX), self.height * math.abs(self.scaleY))
+end
+
+----
+-- (***@event***) Evento chamado uma única vez, quando este objeto é criado e
+-- "percorrido" durante a execução do jogo.
+function M:onCreate()
 end
 
 ----
@@ -635,8 +726,14 @@ function M:update(delta)
 end
 
 ----
+-- (***@event***) Evento chamado uma única vez, quando este objeto é destruído
+-- durante a execução do jogo.
+function M:onDestroy()
+end
+
+----
 -- (***@event***) Evento chamado quando a animação atual termina.
-function M:animationEnded()
+function M:onAnimationEnd()
 end
 
 return M

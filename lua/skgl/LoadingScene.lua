@@ -6,11 +6,13 @@
 -- próprias telas de carregamento. Com um objeto `skgl.AssetManager` e alguns
 -- eventos, estas telas acabam sendo bem simples de fazer.
 --
--- Dependencies: `skgl.Color`, `skgl.Scene`, `skgl.Surface`
+-- Extends `skgl.Scene`
+--
+-- Dependencies: `skgl.Color`, `skgl.Graphics`, `skgl.Scene`
 -- @classmod skgl.LoadingScene
 local Color = require("skgl.Color")
+local Graphics = require("skgl.Graphics")
 local Scene = require("skgl.Scene")
-local Surface = require("skgl.Surface")
 local M = Scene:subclass("skgl.LoadingScene")
 
 ----
@@ -50,9 +52,9 @@ end
 function M:drawProgressBar()
   local fillWidth = (self.fill * 158) / 100
 
-  Surface.drawFillRect(160, 128, 160, 16, self.style.empty, 1)
-  Surface.drawFillRect(161, 129, fillWidth, 7, self.style.fillTop, 1)
-  Surface.drawFillRect(161, 136, fillWidth, 7, self.style.fillBottom, 1)
+  Graphics.rectangle.fill(160, 128, 160, 16, self.style.empty, 1)
+  Graphics.rectangle.fill(161, 129, fillWidth, 7, self.style.fillTop, 1)
+  Graphics.rectangle.fill(161, 136, fillWidth, 7, self.style.fillBottom, 1)
 end
 
 ----
